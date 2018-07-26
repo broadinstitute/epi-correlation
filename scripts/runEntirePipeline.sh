@@ -1,3 +1,4 @@
+#!/bin/bash
 # Runs the pipeline from start to finish.
 # 1) Run IGVTools count
 #       a) runCount.sh
@@ -71,4 +72,4 @@ fi
 
 ./runCount.sh ${args} -i ${inLoc} -o ${outputLoc}coverage.wig
 ./fixCoverageFiles.sh -i ${outputLoc}coverage.wig -o ${outputLoc}coverage_processed.wig
-Rscript FitDistribution.R --input_loc ${outputLoc}coverage_processed.wig --output_loc ${outputLoc}p_value.txt --map_file /reference/mappability_5k.bed
+Rscript fitDistribution.R --input_loc ${outputLoc}coverage_processed.wig --output_loc ${outputLoc}p_value.txt
