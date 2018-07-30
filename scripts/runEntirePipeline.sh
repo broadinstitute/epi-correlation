@@ -9,17 +9,22 @@
 #       a) FitDistribution.R
 #           ^ calls a lot.
 
-# Setting variables
-inLoc=1 # Location of APP
-readLen=0 # Read length, so we can calculate extension factor later
-outputLoc="/output/" # Folder where to store all of the results
-isPE=false # Is the APP paired end?
-debug=false # Is debug mode on?
+set -e
 
-usage() { echo "Usage: $0 [-p|-l <0-200>] -i <input bam> -o </output/>" 1>&2; exit 1;}
+# Setting variables
+inLoc_1=1 # Location of 1st Bam
+inLoc_2=1 # Location of 2nd Bam
+readLen=0 # Read length, so we can calculate extension factor later
+outputLoc="/tmp/" # Folder where to store all of the results
+# TODO: 2 options>
+isPE=false # Are the bams paired end?
+debug=false # Is debug mode on?
+# TODO: Nickname parameter? (instead of coverage[etc], cov_17767[etc] ... )
+
+usage() { echo "Usage: $0 [-p|-l <0-200>] -a <input bam> -b <input bam> -o </tmp/>" 1>&2; exit 1;}
 # Reusing some logic from runCount.sh
 #   key points are: input (bam file), output (folder), l/p (paired or read length)
-while getopts "h?pl:i:o:d" o; do
+while getopts "h?pl:a:b:o:d" o; do
     case "${o}" in
 	d)
 	    debug=true # Doesn't actually do anything at the moment.
@@ -31,8 +36,11 @@ while getopts "h?pl:i:o:d" o; do
         usage
         exit 0
         ;;
-    i)
-        inLoc=$OPTARG
+    a)
+        inLoc_1=$OPTARG
+        ;;
+    b)
+        inLoc_2=$OPTARG
         ;;
     l)
         readLen=$OPTARG
@@ -56,10 +64,16 @@ then
 	exit 1
 fi
 
-# They must provide an APP location.
-if [[ ${APPLoc} == 1 ]]
+# They must provide BAM file locations.
+if [[ ${inLoc_1} == 1 ]]
 then
-    echo "BAM file location must be provided."
+    echo "BAM file 1 location must be provided."
+    exit 1
+fi
+
+if [[ ${inLoc_2} == 1 ]]
+then
+    echo "BAM file 2 location must be provided."
     exit 1
 fi
 
@@ -70,6 +84,16 @@ else
     args="-l ${readLen}"
 fi
 
-./runCount.sh ${args} -i ${inLoc} -o ${outputLoc}coverage.wig
-./fixCoverageFiles.sh -i ${outputLoc}coverage.wig -o ${outputLoc}coverage_processed.wig
-Rscript fitDistribution.R --input_loc ${outputLoc}coverage_processed.wig --output_loc ${outputLoc}p_value.txt
+run_pipeline ()
+{
+    ./runCount.sh ${args} -i ${1} -o ${outputLoc}${2}.wig
+    ./fixCoverageFiles.sh -i ${outputLoc}${2}.wig -o ${outputLoc}${2}_processed.wig
+    Rscript fitDistribution.R --input_loc ${outputLoc}${2}_processed.wig --output_loc ${outputLoc}${2}_p_value.wig
+}
+
+run_pipeline ${inLoc_1} coverage_a
+run_pipeline ${inLoc_2} coverage_b
+
+# TODO : fix
+cor=$( Rscript findCorrelation.R --wig1 ${outputLoc}coverage_a_p_value.wig --wig2 ${outputLoc}coverage_b_p_value.wig )
+echo ${cor}

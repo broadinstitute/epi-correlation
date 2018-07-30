@@ -12,10 +12,10 @@ isPE=false # Is the APP paired end?
 debug=false # Is debug mode on?
 
 # Usage string, to display on error or on -h
-usage() { echo "Usage: $0 [-p|-l <0-200>] -a <input APP location> -o <coverage.wig>" 1>&2; exit 1; }
+usage() { echo "Usage: $0 [-p|-l <0-200>] -i <input APP location> -o <coverage.wig>" 1>&2; exit 1; }
 
 # Parse variables
-while getopts "h?pl:a:o:d" o; do
+while getopts "h?pl:i:o:d" o; do
     case "${o}" in
 	d)
 	    debug=true
@@ -27,7 +27,7 @@ while getopts "h?pl:a:o:d" o; do
         usage
         exit 0
         ;;
-    a)
+    i)
         APPLoc=$OPTARG
         ;;
     l)

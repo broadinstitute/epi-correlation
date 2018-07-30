@@ -26,3 +26,8 @@ RUN apk add --no-cache openjdk8-jre \
 
 ADD scripts/ ./scripts/
 ADD reference/ ./reference/
+
+RUN chmod a+w /scripts
+
+WORKDIR /scripts
+ENTRYPOINT [ "/scripts/runEntirePipeline.sh" ]
