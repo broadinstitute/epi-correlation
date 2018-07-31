@@ -8,6 +8,7 @@ steps:
     '--cache-from', 'us.gcr.io/$PROJECT_ID/correlation',
     '-t', 'us.gcr.io/$PROJECT_ID/correlation', '.',
   ]
+  timeout: 1800s
 timeout: 1800s
 images:
 - 'us.gcr.io/$PROJECT_ID/correlation'
