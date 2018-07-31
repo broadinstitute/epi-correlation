@@ -27,7 +27,7 @@ usage() { echo "Usage: $0 [-p|-l <0-200>] -a <input bam> -b <input bam> -o </tmp
 while getopts "h?pl:a:b:o:d" o; do
     case "${o}" in
 	d)
-	    debug=true # Doesn't actually do anything at the moment.
+	    debug=true
 	    ;;
     p)
         isPE=true
@@ -86,9 +86,23 @@ fi
 
 run_pipeline ()
 {
+    # Check if bam files are indexed
+
+    if [[ ! -f ${1}.bai  && ! -f ${1%.*}.bai ]]; then
+        if [[ $debug == true ]]; then echo "Creating index file for ${1}"; fi
+        igvtools index ${1}
+    fi
+
+    if [[ $debug == true ]]; then echo "Running IGVTools Count for ${1}; saving to ${2}"; fi
     ./runCount.sh ${args} -i ${1} -o ${outputLoc}${2}.wig
+
+    if [[ $debug == true ]]; then echo "Fixing Coverage File ${2}"; fi
     ./fixCoverageFiles.sh -i ${outputLoc}${2}.wig -o ${outputLoc}${2}_processed.wig
+
+    if [[ $debug == true ]]; then echo "Fitting distribution to ${2}"; fi
     Rscript fitDistribution.R --input_loc ${outputLoc}${2}_processed.wig --output_loc ${outputLoc}${2}_p_value.wig
+
+    if [[ $debug == true ]]; then echo "Fitting pipeline complete on $1"; fi
 }
 
 run_pipeline ${inLoc_1} coverage_a
