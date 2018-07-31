@@ -1,1 +1,5 @@
-reference/test_data/
+/**/*
+
+!/reference/*.bed
+!/scripts/**/*.R
+!/scripts/**/*.sh

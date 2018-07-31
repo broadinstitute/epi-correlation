@@ -1,0 +1,13 @@
+
+/**/*
+
+!/.dockerignore
+!/.gitignore
+!/cloudbuild.yaml
+!/Dockerfile
+!/pipeline.wdl
+!/README.md
+
+!/reference/*.bed
+!/scripts/**/*.R
+!/scripts/**/*.sh
