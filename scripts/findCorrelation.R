@@ -1,6 +1,4 @@
-library(plyr)
 library(dplyr)
-library(tidyr)
 library(optparse)
 source('/scripts/resources.R')
 
@@ -8,15 +6,14 @@ source('/scripts/resources.R')
 #'
 #' Resulting DF has 6 columns: chr, start, count_1, pval_1, count_2, pval_2
 #' count_1, count_2 are for the first provided wig, while count_2 and pval_2 are for the second provided wig.
-#' @param APP1_location Location of the 1st fitted wig file
-#' @param APP2_location Location of the 2nd fitted wig file
+#' @param wig1_location Location of the 1st fitted wig file
+#' @param wig2_location Location of the 2nd fitted wig file
 #' @return Dataframe containing the reads, pvalues of both given wig files,
 #' @export 
-# TODO : Rename all instances of APP with wig
-getPvalsOfBoth <- function(APP1_location, APP2_location)
+getPvalsOfBoth <- function(wig1_location, wig2_location)
 {
-    rpDF <- GetReadsPvalDF(APP1_location)
-    rpDF <- bind_cols(rpDF,GetReadsPvalDF(APP2_location) %>% select(one_of(c("count","p_value"))))
+    rpDF <- GetReadsPvalDF(wig1_location)
+    rpDF <- bind_cols(rpDF,GetReadsPvalDF(wig2_location) %>% select(one_of(c("count","p_value"))))
     colnames(rpDF) <- c("chr","start","count_1","pval_1","count_2","pval_2")
 
     return(rpDF)

@@ -7,7 +7,7 @@
 #' @export
 GetReadsDF <- function(location, postprocess=F, thresh=500)
 {
-    # TODO: Do we want to add a specific neat fail if we get an unprocessed file?
+    # TODO : Do we want to add a specific neat fail if we get an unprocessed file?
     #   should be simple enough, check if first line has a "chrom=" substring.
 
     # If the user is calling this function, they don't want p-values. Ensure we only have the desired 3 columns.
@@ -41,7 +41,7 @@ GetReadsDF <- function(location, postprocess=F, thresh=500)
 #' @export
 GetReadsPvalDF <- function(location)
 {
-    # TODO: fail neatly if given an unfitted coverage (no p-value)
+    # TODO : fail neatly if given an unfitted coverage (no p-value)
     bin_df <- read.csv(location, sep=" ", header=FALSE, stringsAsFactors=F, col.names=c("chr","start_idx","count","p_value"))
     return(bin_df)
 }
@@ -56,6 +56,7 @@ GetParameters <- function(location)
     params_loc <- paste0(location,".PARAMS")
     if(!file.exists(params.loc))
     {
+        # TODO : Is there a better way of throwing an error?
         print(paste0("Parameters missing. Please ensure parameters are saved in ",params_loc,"."))
         return(NA)
     }

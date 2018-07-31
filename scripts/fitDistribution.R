@@ -1,4 +1,6 @@
 library(optparse)
+library(plyr)
+library(dplyr)
 source('/scripts/resources.R')
 source('/scripts/ChromatinGWASPipeline/ChromatinGWAS_Pipeline.R')
 

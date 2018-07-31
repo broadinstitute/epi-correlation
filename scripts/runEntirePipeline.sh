@@ -94,6 +94,5 @@ run_pipeline ()
 run_pipeline ${inLoc_1} coverage_a
 run_pipeline ${inLoc_2} coverage_b
 
-# TODO : fix
 cor=$( Rscript findCorrelation.R --wig1 ${outputLoc}coverage_a_p_value.wig --wig2 ${outputLoc}coverage_b_p_value.wig )
 echo ${cor}

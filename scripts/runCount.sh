@@ -5,14 +5,14 @@
 OPTIND=1
 
 # Setting variables
-APPLoc=1 # Location of APP
+BAMLoc=1 # Location of BAM
 readLen=0 # Read length, so we can calculate extension factor later
 outputLoc="coverage.wig" # Output location
-isPE=false # Is the APP paired end?
+isPE=false # Is the BAM paired end?
 debug=false # Is debug mode on?
 
 # Usage string, to display on error or on -h
-usage() { echo "Usage: $0 [-p|-l <0-200>] -i <input APP location> -o <coverage.wig>" 1>&2; exit 1; }
+usage() { echo "Usage: $0 [-p|-l <0-200>] -i <input BAM location> -o <coverage.wig>" 1>&2; exit 1; }
 
 # Parse variables
 while getopts "h?pl:i:o:d" o; do
@@ -28,7 +28,7 @@ while getopts "h?pl:i:o:d" o; do
         exit 0
         ;;
     i)
-        APPLoc=$OPTARG
+        BAMLoc=$OPTARG
         ;;
     l)
         readLen=$OPTARG
@@ -44,16 +44,16 @@ while getopts "h?pl:i:o:d" o; do
     esac
 done
 
-# Either the APP must be Paired End, or they must give us a read length so we can calculate
+# Either the BAM must be Paired End, or they must give us a read length so we can calculate
 #	extension factor.
 if (( $readLen <= 0 )) && [[ $isPE == false ]]
 then
-	echo "ReadLen must provided if the APP is not Paired End."
+	echo "ReadLen must provided if the BAM is not Paired End."
 	exit 1
 fi
 
-# They must provide an APP location.
-if [[ ${APPLoc} == 1 ]]
+# They must provide an BAM location.
+if [[ ${BAMLoc} == 1 ]]
 then
     echo "BAM file location must be provided."
     exit 1
@@ -70,9 +70,10 @@ args="-e $adjstAmnt"
 # If we are in debug mode, just print our command string.
 if [[ $debug == true ]]
 then
-    echo "igvtools count -w 5000 --minMapQuality 1 ${args} ${APPLoc} ${outputLoc} hg19"
+    # TODO : Return error code so we stop running?
+    echo "igvtools count -w 5000 --minMapQuality 1 ${args} ${BAMLoc} ${outputLoc} hg19"
     exit 0
 fi
 # Otherwise, actually run igvtools count.
-igvtools count -w 5000 --minMapQuality 1 ${args} ${APPLoc} ${outputLoc} hg19
+igvtools count -w 5000 --minMapQuality 1 ${args} ${BAMLoc} ${outputLoc} hg19
 exit 0
