@@ -30,4 +30,3 @@ ADD reference/ ./reference/
 RUN chmod a+w /scripts
 
 WORKDIR /scripts
-ENTRYPOINT [ "/scripts/runEntirePipeline.sh" ]
