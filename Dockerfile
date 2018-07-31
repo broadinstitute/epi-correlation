@@ -4,28 +4,37 @@ ARG IGVTOOLS_VERSION='2.3.98'
 
 ADD scripts/install.R /tmp/
 
-RUN apk add --no-cache vim #for testing purposes
-
-RUN apk add --no-cache openjdk8-jre \
+RUN \
+    # Install system packages
+    apk add --no-cache \
       bash \
-      g++ \
+      build-base \
+      curl \
+      openjdk8-jre \
       R \
-      R-dev && \
+      R-dev \
+      && \
+    \
+    # Install R packages
+    mkdir -p /usr/share/doc/R/html && \
+    /tmp/install.R && \
+    \
     # Install IGVTools
     cd /tmp && \
-    wget -qO igvtools.zip \
-      http://data.broadinstitute.org/igv/projects/downloads/${IGVTOOLS_VERSION%.*}/igvtools_${IGVTOOLS_VERSION}.zip && \
-    unzip -q igvtools.zip && \
+    curl https://data.broadinstitute.org/igv/projects/downloads/${IGVTOOLS_VERSION%.*}/igvtools_${IGVTOOLS_VERSION}.zip \
+      -so- | unzip -q - && \
     cd IGVTools && \
     cp -r igvtools igvtools.jar genomes /usr/local/bin/ && \
-    # Install R Packages
-    cd /tmp && \
-    mkdir -p /usr/share/doc/R/html && \
-    ./install.R && \
-    mkdir output
+    \
+    # Clean up
+    rm -rf /tmp/* && \
+    apk del \
+      build-base \
+      curl \
+      R-dev
 
-ADD scripts/ ./scripts/
-ADD reference/ ./reference/
+ADD reference /reference
+ADD scripts /scripts
 
 RUN chmod a+w /scripts
 
