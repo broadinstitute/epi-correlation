@@ -1,0 +1,12 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['pull', 'us.gcr.io/$PROJECT_ID/correlation']
+- name: 'gcr.io/cloud-builders/docker'
+  timeout: 1800s
+  args: [
+    'build',
+    '--cache-from', 'us.gcr.io/$PROJECT_ID/correlation',
+    '-t', 'us.gcr.io/$PROJECT_ID/correlation', '.',
+  ]
+images:
+- 'us.gcr.io/$PROJECT_ID/correlation'
