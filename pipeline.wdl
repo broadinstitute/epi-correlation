@@ -7,9 +7,9 @@ struct PairInfo {
 }
 
 struct Output {
-  String bamA
-  String bamB
-  String corr
+  File bamA
+  File bamB
+  Float corr
 }
 
 workflow Correlation {
@@ -46,10 +46,10 @@ task correlateBams {
   }
 
   output {
-    Output out = {
-      "bamA": "${in.bamA}",
-      "bamB": "${in.bamB}",
-      "corr": read_string("cor_out.txt"),
+    Output out = object {
+      bamA: in.bamA,
+      bamB: in.bamB,
+      corr: read_float("cor_out.txt"),
     }
   }
 
