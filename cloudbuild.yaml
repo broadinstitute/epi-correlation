@@ -14,6 +14,8 @@ steps:
     '--cache-from', '${_REGISTRY}/${PROJECT_ID}/${_IMAGE_NAME}',
     '-t', '${_REGISTRY}/${PROJECT_ID}/${_IMAGE_NAME}', '.',
   ]
-timeout: 1800s
 images:
 - ${_REGISTRY}/${PROJECT_ID}/${_IMAGE_NAME}
+options:
+  machineType: N1_HIGHCPU_8
+timeout: 1800s
