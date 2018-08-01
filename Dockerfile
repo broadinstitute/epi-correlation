@@ -24,6 +24,7 @@ RUN \
     curl https://data.broadinstitute.org/igv/projects/downloads/${IGVTOOLS_VERSION%.*}/igvtools_${IGVTOOLS_VERSION}.zip \
       -so- | unzip -q - && \
     cd IGVTools && \
+    chmod +x igvtools && \
     cp -r igvtools igvtools.jar genomes /usr/local/bin/ && \
     \
     # Clean up
