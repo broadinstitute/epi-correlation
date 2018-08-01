@@ -41,7 +41,7 @@ ARG USER='user'
 
 WORKDIR /scripts
 
-RUN adduser -SH ${USER} && \
+RUN adduser -S ${USER} && \
     chown ${USER} .
 
 USER ${USER}
