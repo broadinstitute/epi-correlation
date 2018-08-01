@@ -37,7 +37,7 @@ RUN \
 ADD reference /reference
 ADD scripts /scripts
 
-ENV USER=user
+ARG USER='user'
 
 WORKDIR /scripts
 
