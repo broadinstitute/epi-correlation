@@ -36,6 +36,11 @@ RUN \
 ADD reference /reference
 ADD scripts /scripts
 
-RUN chmod a+w /scripts
+ENV USER=user
 
 WORKDIR /scripts
+
+RUN adduser -SH ${USER} && \
+    chown ${USER} .
+
+USER ${USER}
