@@ -7,9 +7,9 @@ struct PairInfo {
 }
 
 struct Output {
-  File bamA
-  File bamB
-  Float corr
+  String bamA
+  String bamB
+  String corr
 }
 
 workflow Correlation {
@@ -39,8 +39,8 @@ task correlateBams {
   }
 
   command {
-    ./runEntirePipeline.sh \
-      ${if in.extensionFactor then "-l ${in.extensionFactor}" else "-p"} \
+    /scripts/runEntirePipeline.sh \
+      ${if defined(in.extensionFactor) then "-l ${in.extensionFactor}" else "-p"} \
       -a ${in.bamA} \
       -b ${in.bamB}
   }
@@ -49,7 +49,7 @@ task correlateBams {
     Output out = {
       "bamA": "${in.bamA}",
       "bamB": "${in.bamB}",
-      "corr": "${stdout()}",
+      "corr": read_string("cor_out.txt"),
     }
   }
 

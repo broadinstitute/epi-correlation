@@ -46,5 +46,5 @@ do
 	sed -e "${prevLine},${nextLine}s/^/${curChr}\t/" ${inpWig} | awk "NR >= ${prevLine} && NR <= ${nextLine} {print} " >> ${inpWig}.tmp
 done
 
-Rscript guaranteeBins.R ${inpWig}.tmp ${outWig}
+Rscript /scripts/guaranteeBins.R ${inpWig}.tmp ${outWig}
 rm ${inpWig}.tmp

@@ -94,13 +94,13 @@ run_pipeline ()
     fi
 
     if [[ $debug == true ]]; then echo "Running IGVTools Count for ${1}; saving to ${2}"; fi
-    ./runCount.sh ${args} -i ${1} -o ${outputLoc}${2}.wig
+    /scripts/runCount.sh ${args} -i ${1} -o ${outputLoc}${2}.wig
 
     if [[ $debug == true ]]; then echo "Fixing Coverage File ${2}"; fi
-    ./fixCoverageFiles.sh -i ${outputLoc}${2}.wig -o ${outputLoc}${2}_processed.wig
+    /scripts/fixCoverageFiles.sh -i ${outputLoc}${2}.wig -o ${outputLoc}${2}_processed.wig
 
     if [[ $debug == true ]]; then echo "Fitting distribution to ${2}"; fi
-    Rscript fitDistribution.R --input_loc ${outputLoc}${2}_processed.wig --output_loc ${outputLoc}${2}_p_value.wig
+    Rscript /scripts/fitDistribution.R --input_loc ${outputLoc}${2}_processed.wig --output_loc ${outputLoc}${2}_p_value.wig
 
     if [[ $debug == true ]]; then echo "Fitting pipeline complete on $1"; fi
 }
@@ -108,5 +108,5 @@ run_pipeline ()
 run_pipeline ${inLoc_1} coverage_a
 run_pipeline ${inLoc_2} coverage_b
 
-cor=$( Rscript findCorrelation.R --wig1 ${outputLoc}coverage_a_p_value.wig --wig2 ${outputLoc}coverage_b_p_value.wig )
-echo ${cor}
+cor=$( Rscript /scripts/findCorrelation.R --wig1 ${outputLoc}coverage_a_p_value.wig --wig2 ${outputLoc}coverage_b_p_value.wig )
+echo ${cor} > "cor_out.txt"
