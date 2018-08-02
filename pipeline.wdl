@@ -55,7 +55,7 @@ task correlateBams {
 
   runtime {
     docker: dockerImage
-    cores: 2
+    cpu: 2
     disks: "local-disk 25 HDD"
   }
 }
