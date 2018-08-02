@@ -1,6 +1,6 @@
-library(optparse)
-library(plyr)
-library(dplyr)
+suppressPackageStartupMessages(library(optparse))
+suppressPackageStartupMessages(library(plyr))
+suppressPackageStartupMessages(library(dplyr))
 source('/scripts/resources.R')
 source('/scripts/ChromatinGWASPipeline/ChromatinGWAS_Pipeline.R')
 

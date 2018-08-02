@@ -1,5 +1,5 @@
-library(dplyr)
-library(optparse)
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(optparse))
 source('/scripts/resources.R')
 
 #' Get DF containing the pvals & counts of 2 APPs.

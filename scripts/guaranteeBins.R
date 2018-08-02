@@ -1,4 +1,4 @@
-library(dplyr)
+suppressPackageStartupMessages(library(dplyr))
 
 # Combines the processed wig with the reference bins_template.bed file, ensuring that we have only the bins present in bins_template.
 # This is important for a lot of our later processes.
