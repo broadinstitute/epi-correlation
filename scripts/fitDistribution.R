@@ -41,8 +41,8 @@ MobileProcessSingleFile <- function(input_loc, map_df_filename, exclude_X_Y=TRUE
             working_df <- bin_df
         }
         if(!is.null(mappability_threshold)){
-            map_df <- read.table(file = map_df_filename, sep = "\t", col.names = c('chr', 'start_idx', 'score'), header = FALSE, stringsAsFactors=FALSE)
-            working_df <- left_join(x = working_df, y = map_df, by = c('chr', 'start_idx'))
+            map_df <- GetMappability(map_df_filename)
+            working_df <- left_join(x = working_df, y = map_df, by = c('chr', 'start_idx'='start'))
             working_df <- working_df[working_df$score > mappability_threshold,]
         }
         params_df <- GetDistributionParametersWithOptim(working_df = working_df)

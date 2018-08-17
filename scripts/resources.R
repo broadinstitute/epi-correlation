@@ -63,3 +63,20 @@ GetParameters <- function(location)
     params_df <- read.csv(params_loc, sep=",", header=T, stringsAsFactors=F)
     return(params_df)
 }
+
+#' Get mappability as a dataframe.
+#'
+#' @param location location of mappability reference file, of format chr - start - mappability.
+#' @param preFilter Filter dataframe before returning, requiring a minimum score of mappability_threshold
+#' @param mappabiity_threshold (default:0.9) if preFilter is T, filter dataframes to only rows above or equal to this threshold.
+#' @return dataframe with 3 columns, chr, start, & score
+#' @export
+GetMappability <- function(location="/references/mappability_5k.bed", preFilter=F, mappability_threshold=0.9)
+{
+    map_df <- read.table(file = location, sep = "\t", col.names = c('chr', 'start', 'score'), header = FALSE, stringsAsFactors=FALSE)
+    if(preFilter)
+    {
+        map_df <- map_df %>% filter(score >= mappabiity_threshold)
+    }
+    return(map_df)
+}
