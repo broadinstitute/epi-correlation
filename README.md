@@ -14,20 +14,15 @@ docker run --rm -v [data dir]:/data -it correlation /scripts/runEntirePipeline.s
 ```
 Example:
 ```
-docker run --rm -v ${PWD}/reference/test_data:/data -it correlation /scripts/runEntirePipeline.sh -p -a /data/BAM_1.bam -b /data/BAM_2.bam -s
+docker run --rm -v ~/test_data:/data -it correlation /scripts/runEntirePipeline.sh -p -a /data/BAM_A.bam -b /data/BAM_B.bam -s
 ```
 Parameters are explained in more detail below.
 
 ### Data Directory
-For the docker to run properly, a `/data` directory must be mounted that contains BAM1 and BAM2. In the above example, our data was stored in `~/cor_docker/reference/test_data`. Thus, the command to mount our location data directory to the docker data directory came out to be:
+For the docker to run properly, a `/data` directory must be mounted that contains BAM_A and BAM_B. In the above example, our data was stored in `~/test_data`. Thus, the command to mount our location data directory to the docker data directory came out to be:
 ```
--v ${PWD}/reference/test_data:/data
+-v ~/test_data:/data
 ```
-`${PWD}` was used to refer to the current directory at the time of running the docker, which was `~/cor_docker/`. An alternate version of the parameter is below:
-```
--v ~/cor_docker/reference/test_data:/data
-```
-
 **If this folder does not contain indexing files for your BAMs, it must be fully accessible for writing.** If docker is incapable of writing `.bam.bai` files to this directory, the pipeline will crash.
 Run the command below to allow full write access to your folder:
 ```
@@ -39,14 +34,14 @@ The pipeline requires different input independing on the style of ChIP-seq done.
 ```
 -l [read length]
 ```
-For example, for a single-end ChIP seq bam with a read length of 46, the command would be `-l 46`.
+For example, for a single-end ChIP seq bam with a read length of 46, the command would be `-l 46`. For a paired-end ChIP seq bam, the command would be `-p`.
 
 ### BAM Files
-Parameters `-a` and `-b` are the names of the input BAM files. This should be their name relative to root, so including the data directory you've mounted.
+Parameters `-a` and `-b` are the names of the input BAM files. This should be their name relative to root, so include the data directory you've mounted.
 
-For example, say you have BAMs `BAM_1.bam` and `BAM_2.bam` in `~/cor_docker/reference/test_data`. Your `-a` and `-b` will look like below:
+For example, say you have BAMs `BAM_A.bam` and `BAM_B.bam` in `~/test_data`. Your `-a` and `-b` will look like below:
 ```
--a /data/BAM_1.bam -b /data/BAM_2.bam
+-a /data/BAM_A.bam -b /data/BAM_B.bam
 ```
 
 **Put simply,** for `-a` and `-b`, take the name of your BAM files, and prepend with `/data/`.
@@ -60,7 +55,7 @@ The parameter `-o` determines where the cor_out.txt file is saved. If you want t
 ```
 -o /data/
 ```
-The cor_out.txt file will be available in your `~/cor_docker/reference/test_data` directory.
+The cor_out.txt file will be available in your original data directory; in the example case, it would be in `~/test_data` directory. **This requires full write permissions on your data folder; see the end of the Data Directory section for more information.**
 
 ### Midpoint Directory
 Most of the time, you can ignore this parameter.
@@ -70,6 +65,7 @@ To access these files later, use:
 ```
 -m /data/
 ```
+This will save the midpoint files to the same folder as your data. **This requires full write permissions on your data folder; see the end of the Data Directory section for more information.**
 
 To simply remove them from the `/tmp/` folder, use:
 ```
