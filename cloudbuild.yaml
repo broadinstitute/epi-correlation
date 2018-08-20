@@ -6,7 +6,7 @@ steps:
   args:
   - '-c'
   - |
-    export _TAG_NAME=${TAG_NAME:-"${COMMIT_SHA}"} &&
+    export _TAG_NAME=${TAG_NAME:-"${SHORT_SHA}"} &&
     docker pull ${_IMAGE} ;
     docker build --cache-from ${_IMAGE}
       -t ${_IMAGE} -t ${_IMAGE}:${_TAG_NAME} . &&
