@@ -105,7 +105,7 @@ run_pipeline ()
     # Check if bam files are indexed
 
     if [[ $debug == true ]]; then echo "Running IGVTools Count for ${1}; saving to ${2}"; fi
-    /scripts/runCount.sh ${args} -i ${1} -o ${midLoc}${2}.wig
+    /scripts/runCount.sh ${args} -i ${1} -o ${midLoc}${2}.wig 
 
     if [[ $debug == true ]]; then echo "Fixing Coverage File ${2}"; fi
     /scripts/fixCoverageFiles.sh -i ${midLoc}${2}.wig -o ${midLoc}${2}_processed.wig
@@ -116,8 +116,8 @@ run_pipeline ()
     if [[ $debug == true ]]; then echo "Fitting pipeline complete on $1"; fi
 }
 
-check_for_bais ${inLoc_1} & check_for_bais ${inLoc_2} & wait
-run_pipeline ${inLoc_1} coverage_a & run_pipeline ${inLoc_2} coverage_b & wait
+check_for_bais ${inLoc_1} & check_for_bais ${inLoc_2} & wait > log1.txt
+run_pipeline ${inLoc_1} coverage_a & run_pipeline ${inLoc_2} coverage_b & wait > log2.txt
 
 cor=$( Rscript /scripts/findCorrelation.R --wig1 ${midLoc}coverage_a_p_value.wig --wig2 ${midLoc}coverage_b_p_value.wig )
 if [[ $printToStdOut == true ]]; then echo $cor; exit 0; fi

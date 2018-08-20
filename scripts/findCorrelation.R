@@ -30,8 +30,13 @@ getPvalsOfBoth <- function(wig1_location, wig2_location)
 #'  A bin must be below this pvalue in either wig to be kept.
 #' @return numeric representing the correlation.
 #' @export
-findCorrelation <- function(rpDF, pvalue_threshold=0.01)
+findCorrelation <- function(rpDF, pvalue_threshold=0.01, mappability_threshold=0.9)
 {
+    # Get a mappability dataframe only containing rows passing mappability threshold
+    mapDF <- GetMappability(preFilter=T, mappability_threshold=mappability_threshold)
+    # Use left_join to keep only rows passing that threshold, and then dump the score column afterwards
+    #   (we don't need it)
+    rpDF <- left_join(mapDF, rpDF, by=c("chr","start")) %>% select(-score)
     # Filter out X & Y chromosomes
     rpDF <- rpDF[-which(rpDF$chr %in% c("chrX","chrY")),]
 
