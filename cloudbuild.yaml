@@ -6,11 +6,12 @@ steps:
   args:
   - '-c'
   - |
-    docker pull ${_IMAGE} || true &&
+    export _TAG_NAME=${TAG_NAME:-"${COMMIT_SHA}"} &&
+    docker pull ${_IMAGE} ;
     docker build --cache-from ${_IMAGE}
-      -t ${_IMAGE} -t ${_IMAGE}:${TAG_NAME} . &&
+      -t ${_IMAGE} -t ${_IMAGE}:${_TAG_NAME} . &&
     docker push ${_IMAGE} &&
-    docker push ${_IMAGE}:${TAG_NAME}
+    docker push ${_IMAGE}:${_TAG_NAME}
 options:
   machineType: N1_HIGHCPU_8
 timeout: 1800s
