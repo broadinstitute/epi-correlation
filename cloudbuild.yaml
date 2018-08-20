@@ -1,17 +1,19 @@
 substitutions:
-  _IMAGE: us.gcr.io/${PROJECT_ID}/epi-correlation
+  _REGISTRY: us.gcr.io
+  _IMAGE_NAME: epi-correlation
 steps:
 - name: gcr.io/cloud-builders/docker
   entrypoint: bash
   args:
   - '-c'
   - |
-    export _TAG_NAME=${TAG_NAME:-"${SHORT_SHA}"} &&
-    docker pull ${_IMAGE} ;
-    docker build --cache-from ${_IMAGE} \
-      -t ${_IMAGE} -t ${_IMAGE}:${_TAG_NAME} . &&
-    docker push ${_IMAGE} &&
-    docker push ${_IMAGE}:${_TAG_NAME}
+    export image=${_REGISTRY}/${PROJECT_ID}/${_IMAGE_NAME} &&
+    export tag=${TAG_NAME:-"${SHORT_SHA}"} &&
+    docker pull ${image} ;
+    docker build --cache-from ${image} \
+      -t ${image} -t ${image}:${tag} . &&
+    docker push ${image} &&
+    docker push ${image}:${tag}
 options:
   machineType: N1_HIGHCPU_8
 timeout: 1800s
