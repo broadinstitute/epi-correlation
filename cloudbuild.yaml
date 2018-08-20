@@ -4,15 +4,16 @@ substitutions:
 steps:
 - name: gcr.io/cloud-builders/docker
   entrypoint: bash
+  env:
+  - 'IMAGE=${_REGISTRY}/${PROJECT_ID}/${_IMAGE_NAME}'
   args:
-    - '-c'
-    - |
-      export IMAGE=${_REGISTRY}/${PROJECT_ID}/${_IMAGE_NAME} &&
-      docker pull ${IMAGE} || true &&
-      docker build --cache-from ${IMAGE}
-        -t ${IMAGE} -t ${IMAGE}:${TAG_NAME} . &&
-      docker push ${IMAGE} &&
-      docker push ${IMAGE}:${TAG_NAME}
+  - '-c'
+  - |
+    docker pull ${IMAGE} || true &&
+    docker build --cache-from ${IMAGE}
+      -t ${IMAGE} -t ${IMAGE}:${TAG_NAME} . &&
+    docker push ${IMAGE} &&
+    docker push ${IMAGE}:${TAG_NAME}
 options:
   machineType: N1_HIGHCPU_8
 timeout: 1800s
