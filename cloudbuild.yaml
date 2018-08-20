@@ -8,7 +8,7 @@ steps:
   - |
     export _TAG_NAME=${TAG_NAME:-"${SHORT_SHA}"} &&
     docker pull ${_IMAGE} ;
-    docker build --cache-from ${_IMAGE}
+    docker build --cache-from ${_IMAGE} \
       -t ${_IMAGE} -t ${_IMAGE}:${_TAG_NAME} . &&
     docker push ${_IMAGE} &&
     docker push ${_IMAGE}:${_TAG_NAME}
