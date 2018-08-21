@@ -75,5 +75,5 @@ then
     exit 0
 fi
 # Otherwise, actually run igvtools count.>
-igvtools count -w 5000 --minMapQuality 1 ${args} ${BAMLoc} ${outputLoc} hg19 > /tmp/${BAMLOC}_log.txt 2>/tmp/${BAMLIC}_log.txt
+igvtools count -w 5000 --minMapQuality 1 ${args} ${BAMLoc} ${outputLoc} hg19 > /tmp/${BAMLOC}_log.txt 2>/tmp/${BAMLOC}_log.txt
 exit 0
