@@ -36,13 +36,15 @@ RUN \
 
 ADD reference /reference
 ADD scripts /scripts
-ADD igv /home/usr/igv
+ADD igv /home/user/igv
+ADD test_data /test_data
 
 ARG USER='user'
 
 WORKDIR /scripts
 
 RUN adduser -S ${USER} && \
-    chown ${USER} .
+    chown ${USER} . && \
+    chown -R ${USER} /home/user/igv
 
 USER ${USER}
