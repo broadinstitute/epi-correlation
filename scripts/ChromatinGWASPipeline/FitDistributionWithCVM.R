@@ -1,9 +1,9 @@
-library(plyr)
-library(dplyr)
-library(reshape)
+suppressPackageStartupMessages(library(plyr))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(reshape))
 #library(ggplot2) # GGPlot2 is not provided with this Docker. - Polina
-library(fBasics)
-library(goftest)
+suppressPackageStartupMessages(library(fBasics))
+suppressPackageStartupMessages(library(goftest))
 
 source('/scripts/ChromatinGWASPipeline/UsefulFileLoadingFunctionsv2.R')
 source('/scripts/ChromatinGWASPipeline/UsefulNoiseDistributionFitFunctions.R')

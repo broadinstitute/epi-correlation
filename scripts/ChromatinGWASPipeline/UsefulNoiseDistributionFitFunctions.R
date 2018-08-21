@@ -1,9 +1,9 @@
 # this file contains useful functions for calculating fit distributions
 
 #-----Functions for modeling truncated distributions----------#
-library(dplyr)
+suppressPackageStartupMessages(library(dplyr))
 #library(ggplot2) #GGPlot2 is not provided with this docker. - Polina
-library(reshape)
+suppressPackageStartupMessages(library(reshape))
 
 GetGammaFromMuSigma <- function(sigma, mu, var_in, fun_str, lower_tail = FALSE, show_output = FALSE){
   # the meaning of var_in varies depending on the function: pgamma = q, dgamma = x, qgamma = p, rgamma = n

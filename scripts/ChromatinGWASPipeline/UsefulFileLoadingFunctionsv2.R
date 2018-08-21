@@ -3,8 +3,8 @@
 #' can include a wanted chromosome, or not
 #' Also adds information about bin location of each identified peak, based on the user defined bin size
 #' joined_df is generated with GetAPPWithSegmentationFromLIMS.R
-library(plyr)
-library(dplyr)
+suppressPackageStartupMessages(library(plyr))
+suppressPackageStartupMessages(library(dplyr))
 
 GetFile <- function(filename, header_bool, sep_str){
   if (class(filename) != 'data.frame'){
