@@ -36,6 +36,7 @@ RUN \
 
 ADD reference /reference
 ADD scripts /scripts
+ADD igv /home/usr/igv
 
 ARG USER='user'
 

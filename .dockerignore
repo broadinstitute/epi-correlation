@@ -4,3 +4,4 @@
 !/scripts/ChromatinGWASPipeline/*.R
 !/scripts/*.R
 !/scripts/*.sh
+!/igv/*

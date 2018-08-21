@@ -11,3 +11,5 @@
 !/reference/*.bed
 !/scripts/**/*.R
 !/scripts/**/*.sh
+!/test_data/**/*
+!/igv/**/*
