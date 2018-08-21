@@ -38,7 +38,7 @@ chrs=($(grep -o -E -e 'chrom=chr[0-9|X|Y]+' ${inpWig}))
 echo "" > ${inpWig}.tmp
 
 # For every line between nth and n+1th chromosome lines, add chr[n] to the beginning.
-for i in {0..23}
+for (( i=0; i < ${#lines[@]} - 1; i++ ))
 do
 	prevLine=$(( ${lines[$i]}+1 ))
 	nextLine=$(( ${lines[$((i + 1))]} - 1))
