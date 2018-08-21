@@ -116,8 +116,8 @@ run_pipeline ()
     if [[ $debug == true ]]; then echo "Fitting pipeline complete on $1"; fi
 }
 
-check_for_bais ${inLoc_1} & check_for_bais ${inLoc_2} & wait > log1.txt
-run_pipeline ${inLoc_1} coverage_a & run_pipeline ${inLoc_2} coverage_b & wait > log2.txt
+check_for_bais ${inLoc_1} & check_for_bais ${inLoc_2} & wait
+run_pipeline ${inLoc_1} coverage_a & run_pipeline ${inLoc_2} coverage_b & wait
 
 cor=$( Rscript /scripts/findCorrelation.R --wig1 ${midLoc}coverage_a_p_value.wig --wig2 ${midLoc}coverage_b_p_value.wig )
 if [[ $printToStdOut == true ]]; then echo $cor; exit 0; fi
