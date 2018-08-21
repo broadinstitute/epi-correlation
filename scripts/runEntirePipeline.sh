@@ -96,7 +96,7 @@ check_for_bais ()
 {
     if [[ ! -f ${1}.bai  && ! -f ${1%.*}.bai ]]; then
         if [[ $debug == true ]]; then echo "Creating index file for ${1}"; fi
-        igvtools index ${1}
+        igvtools index ${1} > /tmp/indexLog.txt
     fi
 }
 
@@ -105,7 +105,7 @@ run_pipeline ()
     # Check if bam files are indexed
 
     if [[ $debug == true ]]; then echo "Running IGVTools Count for ${1}; saving to ${2}"; fi
-    /scripts/runCount.sh ${args} -i ${1} -o ${midLoc}${2}.wig 
+    /scripts/runCount.sh ${args} -i ${1} -o ${midLoc}${2}.wig
 
     if [[ $debug == true ]]; then echo "Fixing Coverage File ${2}"; fi
     /scripts/fixCoverageFiles.sh -i ${midLoc}${2}.wig -o ${midLoc}${2}_processed.wig
