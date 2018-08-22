@@ -1,10 +1,9 @@
 #!/bin/bash
 
-# Delete .bai files if they exist.
+# Copy over our BAM files to somewhere we can mess with them.
 cp /test_data/*.bam /tmp/
 
 # Test data is of format TEST_A.bam & TEST_B.bam.
-# TODO : Remove Java output, & check if these spit out the exact right numbers.
 differentFiles=$(/scripts/runEntirePipeline.sh -p -a /tmp/TEST_A.bam -b /tmp/TEST_B.bam -s)
 sameFiles=$(/scripts/runEntirePipeline.sh -p -a /tmp/TEST_A.bam -b /tmp/TEST_A.bam -s)
 echo "Pipeline testing results: "
