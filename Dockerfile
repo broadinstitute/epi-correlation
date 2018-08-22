@@ -1,4 +1,4 @@
-FROM alpine
+FROM alpine as base
 
 ARG IGVTOOLS_VERSION='2.3.98'
 
@@ -34,10 +34,46 @@ RUN \
       curl \
       R-dev
 
+ADD igv /home/user/igv
+
 ADD reference /reference
 ADD scripts /scripts
-ADD igv /home/user/igv
+
+# Tester - copy everything from base; /reference /scripts /usr/lib/R/library /home/usr/igv
+FROM alpine as tester
+COPY --from=base /reference /reference
+COPY --from=base /scripts /scripts
+COPY --from=base /usr/lib/R/library /usr/lib/R/library
+COPY --from=base /usr/local/bin /usr/local/bin
+COPY --from=base /home/user/igv /home/user/igv
+
 ADD test_data /test_data
+
+RUN \
+  apk add --no-cache \
+    bash \
+    openjdk8-jre \
+    R \
+    && \
+  \
+  # run the test command
+  /scripts/testPipeline.sh
+
+# Final - this is what the user should use
+FROM alpine as final
+COPY --from=base /reference /reference
+COPY --from=base /scripts /scripts
+COPY --from=base /usr/lib/R/library /usr/lib/R/library
+COPY --from=base /usr/local/bin /usr/local/bin
+COPY --from=base /home/user/igv /home/user/igv
+
+ADD test_data /test_data
+
+RUN \
+  apk add --no-cache \
+    bash \
+    openjdk8-jre \
+    R 
 
 ARG USER='user'
 
