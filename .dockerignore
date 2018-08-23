@@ -3,6 +3,7 @@
 !/reference
 !/reference/*.bed
 !/scripts
+!/scripts/ChromatinGWASPipeline
 !/scripts/ChromatinGWASPipeline/*.R
 !/scripts/*.R
 !/scripts/*.sh
