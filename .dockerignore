@@ -1,8 +1,12 @@
 /**/*
 
+!/reference
 !/reference/*.bed
+!/scripts
 !/scripts/ChromatinGWASPipeline/*.R
 !/scripts/*.R
 !/scripts/*.sh
+!/igv
 !/igv/**/*
+!/test_data
 !/test_data/**/*
