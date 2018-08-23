@@ -24,18 +24,6 @@ debug=false # Is debug mode on?
 checkPermissions=true
 # TODO: Nickname parameter? (instead of coverage[etc], cov_17767[etc] ... )
 
-# Test for being able to read/write to /data
-if [[ checkPermisions == false ]]
-then
-    permissions=$( stat -c "%A" /data )
-    permissions_all=${permissions:4:3}
-    if [[ $permissions_all != "rwx" ]]
-    then
-        echo "ERROR: Do not have read/write permissions to data folder."
-        exit 1
-    fi
-fi
-
 usage() { echo "Usage: $0 [-p|-l <0-200>] -a <input bam> -b <input bam> -m </tmp/> [-o <>] [-s]" 1>&2; exit 1;}
 # Reusing some logic from runCount.sh
 #   key points are: input (bam file), output (folder), l/p (paired or read length)
@@ -79,6 +67,19 @@ while getopts "h?pl:a:b:m:do:sc" o; do
         ;;
     esac
 done
+
+# Test for being able to read/write to /data
+if [[ $checkPermissions == true ]]
+then
+    permissions=$( stat -c "%A" /data )
+    permissions_all=${permissions:7:3}
+    if [[ $permissions_all != "rwx" ]]
+    then
+        echo "ERROR: Do not have read/write permissions to data folder."
+        echo "Please run chmod a+w to your data folder."
+        exit 1
+    fi
+fi
 
 # Either the APP must be Paired End, or they must give us a read length so we can calculate
 #	extension factor.
