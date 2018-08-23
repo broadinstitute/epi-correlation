@@ -1,6 +1,6 @@
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(optparse))
-source('/scripts/resources.R')
+source("/scripts/resources.R")
 
 #' Get DF containing the pvals & counts of 2 APPs.
 #'
@@ -10,47 +10,52 @@ source('/scripts/resources.R')
 #' @param wig2_location Location of the 2nd fitted wig file
 #' @return Dataframe containing the reads, pvalues of both given wig files,
 #' @export 
-getPvalsOfBoth <- function(wig1_location, wig2_location)
-{
-    rpDF <- get_reads_pvals_df(wig1_location)
-    rpDF <- bind_cols(rpDF,get_reads_pvals_df(wig2_location) %>% select(one_of(c("count","p_value"))))
-    colnames(rpDF) <- c("chr","start","count_1","pval_1","count_2","pval_2")
+get_pvals_of_both <- function(wig1_location, wig2_location) {
+    rp_df <- get_reads_pvals_df(wig1_location)
+    rp_df <- bind_cols(rp_df, get_reads_pvals_df(wig2_location) %>%
+        select(one_of(c("count", "p_value"))))
+    colnames(rp_df) <- c("chr", "start", "count_1", "pval_1", "count_2",
+        "pval_2")
 
-    return(rpDF)
+    return(rp_df)
 }
 
 #' Calculate the correlation between two WIG files.
 #'
 #' Calculates the correlation between two fitted wig files, using only bins that are significant given
 #' the passed pvalue threshold.
-#' @param rpDF Dataframe containing count and pvalue information for both wigs. Must have a chromosome column
+#' @param rp_df Dataframe containing count and pvalue information for both wigs. Must have a chromosome column
 #'  of format "chr[0-9|X|Y]+" for filtering purposes. count & pval columns must be suffixied _1 and _2 for respective
 #'  wig files. Order does not matter.
 #' @param pvalue_threshold [default: 0.01] Maximum pvalue for bins that will be kept for correlation calculation.
 #'  A bin must be below this pvalue in either wig to be kept.
 #' @return numeric representing the correlation.
 #' @export
-findCorrelation <- function(rpDF, pvalue_threshold=0.01, mappability_threshold=0.9)
-{
-    # Get a mappability dataframe only containing rows passing mappability threshold
-    mapDF <- get_mappability(pre_filter=T, mappability_threshold=mappability_threshold)
-    # Use left_join to keep only rows passing that threshold, and then dump the score column afterwards
-    #   (we don't need it)
-    rpDF <- left_join(mapDF, rpDF, by=c("chr","start")) %>% select(-score)
+find_correlation <- function(rp_df, pvalue_threshold = 0.01,
+    mappability_threshold = 0.9) {
+    # Get a mappability dataframe only containing rows passing mappability
+    #   threshold
+    map_df <- get_mappability(pre_filter = T,
+        mappability_threshold = mappability_threshold)
+    # Use left_join to keep only rows passing that threshold, and then dump the
+    #   score column afterwards (we don't need it)
+    rp_df <- left_join(map_df, rp_df, by = c("chr", "start")) %>%
+        select(-score)
     # Filter out X & Y chromosomes
-    rpDF <- rpDF[-which(rpDF$chr %in% c("chrX","chrY")),]
+    rp_df <- rp_df[-which(rp_df$chr %in% c("chrX", "chrY")), ]
 
     # Filter to pvalue threshold
-    rpDF <- rpDF %>% filter(pval_1 <= pvalue_threshold | pval_2 <= pvalue_threshold)
+    rp_df <- rp_df %>% filter(pval_1 <= pvalue_threshold |
+        pval_2 <= pvalue_threshold)
 
-    cat(as.numeric(cor(rpDF$count_1, rpDF$count_2)))
+    cat(as.numeric(cor(rp_df$count_1, rp_df$count_2)))
 }
 
-option_list <- list(make_option('--wig1'),
-                make_option('--wig2'),
-                make_option('--pthreshold', default=0.01))
+option_list <- list(make_option("--wig1"),
+                make_option("--wig2"),
+                make_option("--pthreshold", default = 0.01))
 
 opts <- parse_args(OptionParser(option_list = option_list))
 
-df <- getPvalsOfBoth(opts$wig1, opts$wig2)
-findCorrelation(df,pvalue_threshold=opts$pthreshold)
+df <- get_pvals_of_both(opts$wig1, opts$wig2)
+find_correlation(df, pvalue_threshold = opts$pthreshold)
