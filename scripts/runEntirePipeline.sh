@@ -10,6 +10,7 @@
 #           ^ calls a lot.
 
 set -e
+umask ugo=rwx
 
 # Setting variables
 inLoc_1=1 # Location of 1st Bam
