@@ -155,7 +155,7 @@ run_pipeline ()
 
 # I have a theory that trying to run in parallel causes extreme slow-down in single-core machines.
 # Allowing toggling of single-threaded mode to test this.
-if [[ singleThreaded == true ]]
+if [[ $singleThreaded == true ]]
 then
     check_for_bais ${inLoc_1}
     check_for_bais ${inLoc_2}
