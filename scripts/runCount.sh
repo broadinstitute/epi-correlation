@@ -15,7 +15,7 @@ debug=false # Is debug mode on?
 usage() { echo "Usage: $0 [-p|-l <0-200>] -i <input BAM location> -o <coverage.wig>" 1>&2; exit 1; }
 
 # Parse variables
-while getopts "h?pl:i:o:d" o; do
+while getopts "h?pl:i:o:dx:" o; do
     case "${o}" in
 	d)
 	    debug=true
@@ -36,6 +36,9 @@ while getopts "h?pl:i:o:d" o; do
 	o)
 	    outputLoc=$OPTARG
 	    ;;
+    x)
+        logLoc=$OPTARG
+        ;;
     :)
         echo "Option -$OPTARG requires an argument." >&2
 	    usage
@@ -75,5 +78,5 @@ then
     exit 0
 fi
 # Otherwise, actually run igvtools count.>
-igvtools count -w 5000 --minMapQuality 1 ${args} ${BAMLoc} ${outputLoc} hg19 &>/tmp/${BAMLOC}_log.txt
+igvtools count -w 5000 --minMapQuality 1 ${args} ${BAMLoc} ${outputLoc} hg19 &>>${logLoc}runCount_log.txt
 exit 0

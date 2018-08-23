@@ -16,18 +16,18 @@ inLoc_1=1 # Location of 1st Bam
 inLoc_2=1 # Location of 2nd Bam
 readLen=0 # Read length, so we can calculate extension factor later
 tmpLoc="/tmp/" # Folder where to store all of the midway files (i.e. coverage.wig, coverage_processed.wig.PARAMS)
-outLoc="/data/output"
-logLoc="/data/logs"
+outLoc="/data/output/"
+logLoc="/data/logs/"
 # TODO: 2 options>
 isPE=false # Are the bams paired end?
 debug=false # Is debug mode on?
 checkPermissions=true
 # TODO: Nickname parameter? (instead of coverage[etc], cov_17767[etc] ... )
 
-usage() { echo "Usage: $0 [-p|-l <0-200>] -a <input bam> -b <input bam> -m </tmp/> [-o <>] [-s]" 1>&2; exit 1;}
+usage() { echo "Usage: $0 [-p|-l <0-200>] -a <input bam> -b <input bam> -t </tmp/> [-o </data/output>] [-x </data/logs>] [-d]" 1>&2; exit 1;}
 # Reusing some logic from runCount.sh
 #   key points are: input (bam file), output (folder), l/p (paired or read length)
-while getopts "h?pl:a:b:m:do:sc" o; do
+while getopts "h?pl:a:b:do:cx:t:" o; do
     case "${o}" in
 	d)
 	    debug=true
@@ -51,11 +51,14 @@ while getopts "h?pl:a:b:m:do:sc" o; do
     l)
         readLen=$OPTARG
         ;;
-	m)
-	    tmpLoc=$OPTARG
-	    ;;
     o)
         outLoc=$OPTARG
+        ;;
+    t)
+        tmpLoc=$OPTARG
+        ;;
+    x)
+        logLoc=$OPTARG
         ;;
     c)
         checkPermissions=false
@@ -75,10 +78,20 @@ then
     permissions_all=${permissions:7:3}
     if [[ $permissions_all != "rwx" ]]
     then
-        echo "ERROR: Do not have read/write permissions to data folder."
+        echo "ERROR: Do not have read/write permissions to the provided data folder."
         echo "Please run chmod a+w to your data folder."
         exit 1
     fi
+fi
+
+if [ ! -d "$tmpLoc" ]; then
+    mkdir $tmpLoc
+fi
+if [ ! -d "$logLoc" ]; then
+    mkdir $logLoc
+fi
+if [ ! -d "$outLoc" ]; then
+    mkdir $outLoc
 fi
 
 # Either the APP must be Paired End, or they must give us a read length so we can calculate
@@ -113,7 +126,7 @@ check_for_bais ()
 {
     if [[ ! -f ${1}.bai  && ! -f ${1%.*}.bai ]]; then
         if [[ $debug == true ]]; then echo "Creating index file for ${1}"; fi
-        igvtools index ${1} > /tmp/indexLog.txt
+        igvtools index ${1} > ${logLoc}indexLog.txt
     fi
 }
 
@@ -122,7 +135,7 @@ run_pipeline ()
     # Check if bam files are indexed
 
     if [[ $debug == true ]]; then echo "Running IGVTools Count for ${1}; saving to ${2}"; fi
-    /scripts/runCount.sh ${args} -i ${1} -o ${tmpLoc}${2}.wig
+    /scripts/runCount.sh ${args} -i ${1} -o ${tmpLoc}${2}.wig -x ${logLoc}
 
     if [[ $debug == true ]]; then echo "Fixing Coverage File ${2}"; fi
     /scripts/fixCoverageFiles.sh -i ${tmpLoc}${2}.wig -o ${tmpLoc}${2}_processed.wig
