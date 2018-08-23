@@ -20,7 +20,7 @@ source('/scripts/ChromatinGWASPipeline/ChromatinGWAS_Pipeline.R')
 # TODO : how many columns are in [[pvals]]?
 MobileProcessSingleFile <- function(input_loc, map_df_filename, exclude_X_Y=TRUE, mappability_threshold=0.9, estimation_method='cvm', use_pvalue_thresh=F, p_value_thresh = 0.01, step_size = 0.01)
 {
-    bin_df <- GetReadsDF(input_loc, postprocess=T)
+    bin_df <- get_reads_df(input_loc, postprocess=T)
     # For some reason, GetDistributionParametersWithOptim uses a Counts column that does not exist elsewhere in the code.
     # Adding it here.
     bin_df$Counts <- bin_df$count
@@ -41,7 +41,7 @@ MobileProcessSingleFile <- function(input_loc, map_df_filename, exclude_X_Y=TRUE
             working_df <- bin_df
         }
         if(!is.null(mappability_threshold)){
-            map_df <- GetMappability(map_df_filename)
+            map_df <- get_mappability(map_df_filename)
             working_df <- left_join(x = working_df, y = map_df, by = c('chr', 'start_idx'='start'))
             working_df <- working_df[working_df$score > mappability_threshold,]
         }
@@ -61,7 +61,7 @@ MobileProcessSingleFile <- function(input_loc, map_df_filename, exclude_X_Y=TRUE
 #' @export
 saveFullDataFrame <- function(input_loc, processing_results, output_loc)
 {
-    original_df <- GetReadsDF(input_loc)
+    original_df <- get_reads_df(input_loc)
     save_df <- left_join(original_df, processing_results[["pvals"]] %>% select(one_of("chr","start_idx","p_value")),by=c("chr","start_idx"))
     params_save_loc <- paste0(output_loc, ".PARAMS")
     write.table(save_df, file=output_loc, sep=" ", row.names=F, col.names=F, quote=F, append=F)

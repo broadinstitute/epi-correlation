@@ -12,8 +12,8 @@ source('/scripts/resources.R')
 #' @export 
 getPvalsOfBoth <- function(wig1_location, wig2_location)
 {
-    rpDF <- GetReadsPvalDF(wig1_location)
-    rpDF <- bind_cols(rpDF,GetReadsPvalDF(wig2_location) %>% select(one_of(c("count","p_value"))))
+    rpDF <- get_reads_pvals_df(wig1_location)
+    rpDF <- bind_cols(rpDF,get_reads_pvals_df(wig2_location) %>% select(one_of(c("count","p_value"))))
     colnames(rpDF) <- c("chr","start","count_1","pval_1","count_2","pval_2")
 
     return(rpDF)
@@ -33,7 +33,7 @@ getPvalsOfBoth <- function(wig1_location, wig2_location)
 findCorrelation <- function(rpDF, pvalue_threshold=0.01, mappability_threshold=0.9)
 {
     # Get a mappability dataframe only containing rows passing mappability threshold
-    mapDF <- GetMappability(preFilter=T, mappability_threshold=mappability_threshold)
+    mapDF <- get_mappability(pre_filter=T, mappability_threshold=mappability_threshold)
     # Use left_join to keep only rows passing that threshold, and then dump the score column afterwards
     #   (we don't need it)
     rpDF <- left_join(mapDF, rpDF, by=c("chr","start")) %>% select(-score)
