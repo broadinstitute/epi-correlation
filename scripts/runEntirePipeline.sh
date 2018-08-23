@@ -15,18 +15,31 @@ set -e
 inLoc_1=1 # Location of 1st Bam
 inLoc_2=1 # Location of 2nd Bam
 readLen=0 # Read length, so we can calculate extension factor later
-midLoc="/tmp/" # Folder where to store all of the midway files (i.e. coverage.wig, coverage_processed.wig.PARAMS)
-outLoc=""
+tmpLoc="/tmp/" # Folder where to store all of the midway files (i.e. coverage.wig, coverage_processed.wig.PARAMS)
+outLoc="/data/output"
+logLoc="/data/logs"
 # TODO: 2 options>
 isPE=false # Are the bams paired end?
 debug=false # Is debug mode on?
-printToStdOut=false
+checkPermissions=true
 # TODO: Nickname parameter? (instead of coverage[etc], cov_17767[etc] ... )
+
+# Test for being able to read/write to /data
+if [[ checkPermisions == false ]]
+then
+    permissions=$( stat -c "%A" /data )
+    permissions_all=${permissions:4:3}
+    if [[ $permissions_all != "rwx" ]]
+    then
+        echo "ERROR: Do not have read/write permissions to data folder."
+        exit 1
+    fi
+fi
 
 usage() { echo "Usage: $0 [-p|-l <0-200>] -a <input bam> -b <input bam> -m </tmp/> [-o <>] [-s]" 1>&2; exit 1;}
 # Reusing some logic from runCount.sh
 #   key points are: input (bam file), output (folder), l/p (paired or read length)
-while getopts "h?pl:a:b:m:do:s" o; do
+while getopts "h?pl:a:b:m:do:sc" o; do
     case "${o}" in
 	d)
 	    debug=true
@@ -35,7 +48,7 @@ while getopts "h?pl:a:b:m:do:s" o; do
         isPE=true
         ;;
     s)
-        printToStdOut=true
+        silenceAllButCorToSTDOUT=true
         ;;
     h|\?)
         usage
@@ -51,10 +64,13 @@ while getopts "h?pl:a:b:m:do:s" o; do
         readLen=$OPTARG
         ;;
 	m)
-	    midLoc=$OPTARG
+	    tmpLoc=$OPTARG
 	    ;;
     o)
         outLoc=$OPTARG
+        ;;
+    c)
+        checkPermissions=false
         ;;
     :)
         echo "Option -$OPTARG requires an argument." >&2
@@ -105,13 +121,13 @@ run_pipeline ()
     # Check if bam files are indexed
 
     if [[ $debug == true ]]; then echo "Running IGVTools Count for ${1}; saving to ${2}"; fi
-    /scripts/runCount.sh ${args} -i ${1} -o ${midLoc}${2}.wig
+    /scripts/runCount.sh ${args} -i ${1} -o ${tmpLoc}${2}.wig
 
     if [[ $debug == true ]]; then echo "Fixing Coverage File ${2}"; fi
-    /scripts/fixCoverageFiles.sh -i ${midLoc}${2}.wig -o ${midLoc}${2}_processed.wig
+    /scripts/fixCoverageFiles.sh -i ${tmpLoc}${2}.wig -o ${tmpLoc}${2}_processed.wig
 
     if [[ $debug == true ]]; then echo "Fitting distribution to ${2}"; fi
-    Rscript /scripts/fitDistribution.R --input_loc ${midLoc}${2}_processed.wig --output_loc ${midLoc}${2}_p_value.wig
+    Rscript /scripts/fitDistribution.R --input_loc ${tmpLoc}${2}_processed.wig --output_loc ${tmpLoc}${2}_p_value.wig
 
     if [[ $debug == true ]]; then echo "Fitting pipeline complete on $1"; fi
 }
@@ -119,6 +135,7 @@ run_pipeline ()
 check_for_bais ${inLoc_1} & check_for_bais ${inLoc_2} & wait
 run_pipeline ${inLoc_1} coverage_a & run_pipeline ${inLoc_2} coverage_b & wait
 
-cor=$( Rscript /scripts/findCorrelation.R --wig1 ${midLoc}coverage_a_p_value.wig --wig2 ${midLoc}coverage_b_p_value.wig )
-if [[ $printToStdOut == true ]]; then echo $cor; exit 0; fi
+cor=$( Rscript /scripts/findCorrelation.R --wig1 ${tmpLoc}coverage_a_p_value.wig --wig2 ${tmpLoc}coverage_b_p_value.wig )
 echo ${cor} > $outLoc"cor_out.txt"
+if [[ $debug == false ]]; then echo $cor; exit 0; fi
+echo "Final correlation between ${inLoc_1} & ${inLoc_2}: ${cor}"
