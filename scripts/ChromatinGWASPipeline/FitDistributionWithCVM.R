@@ -77,7 +77,8 @@ cvm.test2 <- function(x, null="punif", ..., nullname) {
     }
     pard <- paste("with",
       ngettext(length(pard), "parameter", "parameters"),
-      "  ", paste(pard, collapse=", "))
+      "  ", paste(pard, collapse=", ")
+      )
     METHOD <- c(METHOD, pard)
   }
 

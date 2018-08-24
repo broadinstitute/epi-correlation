@@ -21,13 +21,13 @@ GetSaveFilename <- function(save_fields, joined_df, save_location, APP_full){
 
 # default save location is in same folder as bed_file_location
 ProcessSingleFile <- function(APP_full, joined_df, reference_df,
-  use_segmentation = FALSE, step_size = 0.01, save_location = "default",
-  save_fields, p_value_thresh = 0.01, return_params = FALSE,
-  save_params = FALSE, exclude_X_Y = TRUE,
-  map_df_filename = "MappabilityTrack/binned_mappability_scores_5k.txt",
-  map_df_sep = "\t", mappability_threshold = 0.9,
-  estimation_method = "cvm", overwrite_file = FALSE,
-  reference_file="/seq/epiprod02/Polina/IGVCount/5k/bin_bl.bed"){
+    use_segmentation = FALSE, step_size = 0.01, save_location = "default",
+    save_fields, p_value_thresh = 0.01, return_params = FALSE,
+    save_params = FALSE, exclude_X_Y = TRUE,
+    map_df_filename = "MappabilityTrack/binned_mappability_scores_5k.txt",
+    map_df_sep = "\t", mappability_threshold = 0.9,
+    estimation_method = "cvm", overwrite_file = FALSE,
+    reference_file="/seq/epiprod02/Polina/IGVCount/5k/bin_bl.bed"){
 
   print(joined_df$Name)
   # load bed file as bin_df
@@ -54,9 +54,11 @@ ProcessSingleFile <- function(APP_full, joined_df, reference_df,
     return(FALSE)
   }
 
-  bin_df <- GetBinDf(APP_full = APP_full, joined_df = joined_df,
+  bin_df <- GetBinDf(
+    APP_full = APP_full, joined_df = joined_df,
     reference_df = reference_df, use_segmentation = use_segmentation,
-    use_wanted_chr = FALSE, bin_size = 5000, reference_file = reference_file)
+    use_wanted_chr = FALSE, bin_size = 5000, reference_file = reference_file
+    )
   if (is.null(bin_df)){
     print(paste(APP_full, 
       "does not have the appropriate number of rows or columns."))
@@ -130,15 +132,15 @@ ProcessSingleFile <- function(APP_full, joined_df, reference_df,
 # reference_df_filename = '~/Chromatin_GWAS/Chr5kBinsReference_BlacklistRemoved.csv'
 # store arguments for ProcessSingleFile in ...
 ProcessManyFiles <- function(
-  joined_df_filename = "/seq/epiprod02/Polina/IGVCount/SANDBOX/5k/Combined_APP_Segmentation.csv",
-  joined_df_sep_str = "\t",
-  reference_df_filename = "/seq/epiprod02/Polina/IGVCount/5k/bin_bl.bed",
-  reference_df_sep_str = " ", overwrite_file = FALSE, save_params = FALSE,
-  use_wanted_APP = FALSE, wanted_APP = NULL, estimation_method = "cvm",
-  save_fields = c("chr", "p_value"), save_location = "default",
-  return_params = FALSE, bin_size = 5000,
-  map_df_filename = "MappabilityTrack/binned_mappability_scores_5k.txt",
-  map_df_sep = "\t", mappability_threshold = 0.9, exclude_X_Y = TRUE){
+    joined_df_filename = "/seq/epiprod02/Polina/IGVCount/SANDBOX/5k/Combined_APP_Segmentation.csv",
+    joined_df_sep_str = "\t",
+    reference_df_filename = "/seq/epiprod02/Polina/IGVCount/5k/bin_bl.bed",
+    reference_df_sep_str = " ", overwrite_file = FALSE, save_params = FALSE,
+    use_wanted_APP = FALSE, wanted_APP = NULL, estimation_method = "cvm",
+    save_fields = c("chr", "p_value"), save_location = "default",
+    return_params = FALSE, bin_size = 5000,
+    map_df_filename = "MappabilityTrack/binned_mappability_scores_5k.txt",
+    map_df_sep = "\t", mappability_threshold = 0.9, exclude_X_Y = TRUE){
 
   joined_df <- read.csv(file = joined_df_filename, header = TRUE,
     sep = joined_df_sep_str, stringsAsFactors = FALSE)
@@ -155,8 +157,7 @@ ProcessManyFiles <- function(
 
   if (dim(reference_df)[2] == 4){
     names(reference_df) <- c("chr", "start_idx", "end_idx", "chr_str")
-    reference_df <- reference_df[,
-     c("chr", "start_idx", "end_idx", "chr_str")]
+    reference_df <- reference_df[, c("chr", "start_idx", "end_idx", "chr_str")]
   } else {
     names(reference_df) <- c("chr", "start_idx")
     reference_df$end_idx <- reference_df$start_idx + bin_size - 1
