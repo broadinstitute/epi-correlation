@@ -10,12 +10,14 @@ readLen=0 # Read length, so we can calculate extension factor later
 outputLoc="coverage.wig" # Output location
 isPE=false # Is the BAM paired end?
 debug=false # Is debug mode on?
+useCustomMemory=false
+customMemoryAmt="1500m"
 
 # Usage string, to display on error or on -h
 usage() { echo "Usage: $0 [-p|-l <0-200>] -i <input BAM location> -o <coverage.wig>" 1>&2; exit 1; }
 
 # Parse variables
-while getopts "h?pl:i:o:dx:" o; do
+while getopts "h?pl:i:o:dx:m:" o; do
     case "${o}" in
 	d)
 	    debug=true
@@ -38,6 +40,10 @@ while getopts "h?pl:i:o:dx:" o; do
 	    ;;
     x)
         logLoc=$OPTARG
+        ;;
+    m)
+        useCustomMemory=true
+        customMemoryAmt=$OPTARG
         ;;
     :)
         echo "Option -$OPTARG requires an argument." >&2
@@ -77,6 +83,10 @@ then
     echo "igvtools count -w 5000 --minMapQuality 1 ${args} ${BAMLoc} ${outputLoc} hg19"
     exit 0
 fi
-# Otherwise, actually run igvtools count.>
-igvtools count -w 5000 --minMapQuality 1 ${args} ${BAMLoc} ${outputLoc} hg19 &>>${logLoc}runCount_log.txt
+# Otherwise, actually run igvtools count.
+if [[ $useCustomMemory == true ]]; then
+    java -Xmx$customMemoryAmt -Djava.awt.headless=true -jar /usr/local/bin/igvtools.jar count -w 5000 --minMapQuality 1 ${args} ${BAMLoc} ${outputLoc} hg19 &>>${logLoc}runCount_log.txt
+else
+    igvtools count -w 5000 --minMapQuality 1 ${args} ${BAMLoc} ${outputLoc} hg19 &>>${logLoc}runCount_log.txt
+fi
 exit 0
