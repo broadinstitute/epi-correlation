@@ -28,7 +28,7 @@ useCustomMemory=false
 customMemoryAmt="1500m"
 # TODO: Nickname parameter? (instead of coverage[etc], cov_17767[etc] ... )
 
-usage() { echo "Usage: $0 [-p|-l <0-200>] -a <input bam> -b <input bam> -t </tmp/> [-o </data/output>] [-x </data/logs>] [-d]" 1>&2; exit 1;}
+usage() { echo "Usage: $0 [-p|-l <0-200>] -a <input bam> -b <input bam> [-t </tmp/>] [-o </data/output>] [-x </data/logs>] [-d] [-m [0-9]+(m|g)]" 1>&2; exit 1;}
 # Reusing some logic from runCount.sh
 #   key points are: input (bam file), output (folder), l/p (paired or read length)
 while getopts "h?pl:a:b:do:cx:t:sm:" o; do

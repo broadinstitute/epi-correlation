@@ -9,14 +9,7 @@ docker build -t correlation .
 ```
 
 ## Testing
-After downloading & building the docker, it takes only a few seconds to check that it is working as intended. We have included in the test_data folder 2 BAM files; `TEST_A.bam` and `TEST_B.bam`. These BAM files were created by randomly subsampling .0001% of a real BAM file, twice. `TEST_A.bam` and `TEST_B.bam` are used to test the pipeline, as we know the correlation of `TEST_A.bam` and `TEST_B.bam`, and the correlation of `TEST_A.bam` to itself must be 1.
-
-A script has been provided to quickly and easily use these two files to test that the scripts in the docker are functioning as intended; `/scripts/testPipeline.sh`. To run it, type the following:
-
-```
-docker run --rm -it correlation /scripts/testPipeline.sh
-```
-The output hopefully looks like below:
+The docker automatically tests itself upon complication. You should see the following output somewhere in the docker output:
 ```
 Pipeline Testing Results: 
 File A vs File A:
@@ -25,16 +18,17 @@ File A vs File A:
 File A vs File B:
 -0.652163     PASS
 ```
-If either of these say FAIL, something went wrong. If the output contains a large blurb of text, this will include the error message, and should be used for debugging or for submitting a bug.
+
+If the docker failed to compile & one or more of these say FAIL, something went wrong and may require a bug report.
 
 ## Usage
 `-h` Output:
 ```
-docker run --rm -v [data dir]:/data -it correlation /scripts/runEntirePipeline.sh [-p|-l <0-200>] -a <input bam> -b <input bam> [-m </tmp/>] [-o <>] [-s]
+docker run --rm -v [data dir]:/data -it correlation /scripts/runEntirePipeline.sh [-p|-l <0-200>] -a <input bam> -b <input bam> [-t </tmp/>] [-o </data/output>] [-x </data/logs>] [-d] [-m [0-9]+(m|g)] [-s]
 ```
 Example:
 ```
-docker run --rm -v ~/ChIPseq_data:/data -it correlation /scripts/runEntirePipeline.sh -p -a /data/BAM_A.bam -b /data/BAM_B.bam -s
+docker run --rm -v ~/ChIPseq_data:/data -it correlation /scripts/runEntirePipeline.sh -p -a /data/BAM_A.bam -b /data/BAM_B.bam
 ```
 Parameters are explained in more detail below.
 
@@ -44,63 +38,33 @@ For the docker to run properly, a `/data` directory must be mounted that contain
 ```
 -v ~/ChIPseq_data:/data
 ```
-**If this folder does not contain indexing files for your BAMs, it must be fully accessible for writing.** If docker is incapable of writing `.bam.bai` files to this directory, the pipeline will crash.
+**This folder must be fully accessible for writing.** By default, all logs and output are printed to `/data/logs` and `/data/output`, so not having access to this folder will cause the pipeline to crash.
 Run the command below to allow full write access to your folder:
 ```
 chmod a+w [folder]
 ```
 
 ### Paired End vs Single End
-The pipeline requires different input independing on the style of ChIP-seq done. If the .bams are paired end, the parameter `-p` is required. If they are single-end, the following parameter is required:
-```
--l [read length]
-```
+The pipeline requires different input independing on the style of ChIP-seq done. If the .bams are paired end, the parameter `-p` is required. If they are single-end, the parameter `-l [read length]` is required.
+
 For example, for a single-end ChIP seq bam with a read length of 46, the command would be `-l 46`. For a paired-end ChIP seq bam, the command would be `-p`.
 
 ### BAM Files
-Parameters `-a` and `-b` are the names of the input BAM files. This should be their name relative to root, so include the data directory you've mounted.
+Parameters `-a` and `-b` are the names of the input BAM files. This should be their name relative to the data directory, so include the names of any subfolders.
 
 For example, say you have BAMs `BAM_A.bam` and `BAM_B.bam` in `~/ChIPseq_data`. Your `-a` and `-b` will look like below:
 ```
--a /data/BAM_A.bam -b /data/BAM_B.bam
+-a BAM_A.bam -b BAM_B.bam
 ```
-
-**Put simply,** for `-a` and `-b`, take the name of your BAM files, and prepend with `/data/`.
 
 ### Output Parameters
-There are 2 different parameters controlling output. 
+The location to save the final correlation value is defined using `-o`. By default, it is set to `-o /data/output`, resulting in a directory called `output` being created in your data directory. You may also adjust the locations of any output logs by setting `-x` (default of `-x /data/logs`), and any temporary files by setting `-t` (default `/tmp/`). If you would like to hide logs, feel free to set `-x` to `-x /tmp/`.
 
-The parameter `-s` determines whether or not the final correlation value is printed to stdout in completion. Use this flag if you are saving the output to a file yourself, or if you just want to see the correlation.
+### Standard Out
+By default, the docker runs in non-debug mode. The only output to stdout will be the final correlation value, the same value saved to the directory defined by `-o`. To enter debug mode, add the flag `-d`. In debug mode, messages representing the state of the pipeline will be printed to stdout.
 
-The parameter `-o` determines where the cor_out.txt file is saved. If you want the pipeline to automatically save the correlation to a file where you can access it after the pipeline is complete, the only valid option is as follows:
-```
--o /data/
-```
-The cor_out.txt file will be available in your original data directory; in the example case, it would be in `~/ChIPseq_data` directory. **This requires full write permissions on your data folder; see the end of the Data Directory section for more information.**
+### Setting Java Memory
+This docker uses two igvtools scripts, both of which run using the Java VM. The amount of memory allocated to each VM can be defined by using the `-m` parameter. For example, to set 1500mb for each VM, use the parameter `-m 1500m`. For 3GB, use `-m 3g`. Please note that in double mode (default), two VMs run at once time, so ensure you have enough RAM for `-m` times two.
 
-### Midpoint Directory
-Most of the time, you can ignore this parameter.
-By default, all mid-pipeline files are saved to the docker's `/tmp/` directory. This is a special directory that allows for faster reading and writing of files. However, if your machine has low RAM, or you want to be able to later access these files, you can change this folder.
-
-To access these files later, use:
-```
--m /data/
-```
-This will save the midpoint files to the same folder as your data. **This requires full write permissions on your data folder; see the end of the Data Directory section for more information.**
-
-To simply remove them from the `/tmp/` folder, use:
-```
--m /scripts/
-```
-
-# FAQ
-## Why can't I see any results?
-
-Please make sure you either include `-s` or `-o /data/` in your command.
-If you have `-s` set, make sure you pipe the command to a file as follows:
-```
-docker run --rm -v [... command ...] -s > myCorrelation.txt
-```
-
-## How do I see my logs?
-Set `-m` to `/data/`. Please make sure that permissions in your data folder are appropriately set.
+### Single Threaded Mode
+The parameter `-s` controls whether or not the pipeline will run in single or double mode. By default, the pipeline will be run on both BAM_A and BAM_B simultaneously. On older machines or weaker VMs, this provides no benefit, so it may be worth adding the `-s` flag to force them to run one after the other.
