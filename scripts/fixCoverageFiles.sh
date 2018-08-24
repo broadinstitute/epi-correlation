@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 inpWig=coverage.wig
 outWig=coverage_processed.wig
 

@@ -47,21 +47,30 @@ while getopts "h?pl:a:b:do:cx:t:sm:" o; do
         exit 0
         ;;
     a)
-        inLoc_1=$OPTARG
+        inLoc_1="/data/"$OPTARG
         ;;
     b)
-        inLoc_2=$OPTARG
+        inLoc_2="/data/"$OPTARG
         ;;
     l)
         readLen=$OPTARG
         ;;
     o)
+        if [[ ! ${OPTARG: -1} == "/" ]]; then
+            OPTARG=${OPTARG}"/"
+        fi
         outLoc=$OPTARG
         ;;
     t)
+        if [[ ! ${OPTARG: -1} == "/" ]]; then
+            OPTARG=${OPTARG}"/"
+        fi
         tmpLoc=$OPTARG
         ;;
     x)
+        if [[ ! ${OPTARG: -1} == "/" ]]; then
+            OPTARG=${OPTARG}"/"
+        fi
         logLoc=$OPTARG
         ;;
     c)
@@ -93,6 +102,7 @@ fi
 
 # Test for being able to read/write to /data.
 # $checkPermissions should only ever be set to false when we are using non-mounted data; i.e. testPipeline.sh, which has its own folders & data and doesn't have to worry about permissions.
+# TODO : turn this into a function so we can call it on the tmploc, logloc, & outloc
 if [[ $checkPermissions == true ]]
 then
     permissions=$( stat -c "%A" /data )
@@ -116,8 +126,6 @@ fi
 if [ ! -d "$outLoc" ]; then
     mkdir $outLoc
 fi
-# TODO : do we want to make sure that they user had a "/" at the end? Otherwise, things don't actually get put into the directory they specify. On the other hand, that's babysitting.
-# TODO : How do we go about making sure that all of the files output by the docker are delete-able by the user?
 
 # Either the APP must be Paired End, or they must give us a read length so we can calculate
 #	extension factor.

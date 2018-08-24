@@ -5,8 +5,8 @@ mkdir /data
 cp /test_data/*.bam /data/
 
 # Test data is of format TEST_A.bam & TEST_B.bam.
-differentFiles=$(/scripts/runEntirePipeline.sh -p -a /data/TEST_A.bam -b /data/TEST_B.bam -c)
-sameFiles=$(/scripts/runEntirePipeline.sh -p -a /data/TEST_A.bam -b /data/TEST_A.bam -c)
+differentFiles=$(/scripts/runEntirePipeline.sh -p -a TEST_A.bam -b TEST_B.bam -c)
+sameFiles=$(/scripts/runEntirePipeline.sh -p -a TEST_A.bam -b TEST_A.bam -c)
 echo "Pipeline testing results: "
 
 echo "File A vs File A: "

@@ -1,6 +1,8 @@
 #!/bin/bash
 # New version of Running IGVTools Count, without using python as a mediator.
 
+set -e
+
 # Something something make sure getopts will work properly
 OPTIND=1
 
