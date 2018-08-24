@@ -6,16 +6,22 @@ suppressPackageStartupMessages(library(dplyr))
 args=commandArgs(trailingOnly=TRUE)
 
 # Our bin template, produced elsewhere & provided with this docker
-bins_template <- read.table("/reference/bins_template.bed", stringsAsFactors = F)
-colnames(bins_template) <- c("chr","start")
+bins_template <- read.table(
+  "/reference/bins_template.bed",
+  stringsAsFactors = F
+  )
+colnames(bins_template) <- c("chr", "start")
 
 # Our reformatted BED file, containing 5kb regions and their coverage
 sparse_coverage <- read.table(args[1], stringsAsFactors = F)
-colnames(sparse_coverage) <- c("chr","start","count")
+colnames(sparse_coverage) <- c("chr", "start", "count")
 
 # Left join to ensure we have all of & only the bins in bins_template; set count to 0 where NA
-final_coverage <- left_join(bins_template, sparse_coverage, by=c("chr","start"))
-final_coverage[which(is.na(final_coverage$count)),"count"] = 0
+final_coverage <- left_join(
+  bins_template,
+  sparse_coverage, by=c("chr", "start")
+  )
+final_coverage[which(is.na(final_coverage$count)), "count"] = 0
 
 # Save
-write.table(args[2],x=final_coverage,row.names = F, col.names = F,quote=F)
+write.table(args[2], x=final_coverage,row.names = F, col.names = F,quote=F)

@@ -10,10 +10,13 @@ source("/scripts/resources.R")
 #' @param wig2_location Location of the 2nd fitted wig file
 #' @return Dataframe containing the reads, pvalues of both given wig files,
 #' @export 
-get_pvals_of_both <- function(wig1_location, wig2_location) {
-    rp_df <- get_reads_pvals_df(wig1_location)
-    rp_df <- bind_cols(rp_df, get_reads_pvals_df(wig2_location) %>%
-        select(one_of(c("count", "p_value"))))
+GetPvalsOfBoth <- function(wig1_location, wig2_location) {
+    rp_df <- GetReadsPvalsDF(wig1_location)
+    rp_df <- bind_cols(
+        rp_df,
+        GetReadsPvalsDF(wig2_location) %>% 
+            select(one_of(c("count", "p_value")))
+        )
     colnames(rp_df) <- c("chr", "start", "count_1", "pval_1", "count_2",
         "pval_2")
 
@@ -31,11 +34,11 @@ get_pvals_of_both <- function(wig1_location, wig2_location) {
 #'  A bin must be below this pvalue in either wig to be kept.
 #' @return numeric representing the correlation.
 #' @export
-find_correlation <- function(rp_df, pvalue_threshold = 0.01,
+FindCorrelation <- function(rp_df, pvalue_threshold = 0.01,
     mappability_threshold = 0.9) {
     # Get a mappability dataframe only containing rows passing mappability
     #   threshold
-    map_df <- get_mappability(pre_filter = T,
+    map_df <- GetMappability(pre_filter = T,
         mappability_threshold = mappability_threshold)
     # Use left_join to keep only rows passing that threshold, and then dump the
     #   score column afterwards (we don't need it)
@@ -45,8 +48,10 @@ find_correlation <- function(rp_df, pvalue_threshold = 0.01,
     rp_df <- rp_df[-which(rp_df$chr %in% c("chrX", "chrY")), ]
 
     # Filter to pvalue threshold
-    rp_df <- rp_df %>% filter(pval_1 <= pvalue_threshold |
-        pval_2 <= pvalue_threshold)
+    rp_df <- rp_df %>% filter(
+        pval_1 <= pvalue_threshold |
+        pval_2 <= pvalue_threshold
+        )
 
     cat(as.numeric(cor(rp_df$count_1, rp_df$count_2)))
 }
@@ -57,5 +62,5 @@ option_list <- list(make_option("--wig1"),
 
 opts <- parse_args(OptionParser(option_list = option_list))
 
-df <- get_pvals_of_both(opts$wig1, opts$wig2)
-find_correlation(df, pvalue_threshold = opts$pthreshold)
+df <- GetPvalsOfBoth(opts$wig1, opts$wig2)
+FindCorrelation(df, pvalue_threshold = opts$pthreshold)

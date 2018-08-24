@@ -18,59 +18,77 @@ source("/scripts/ChromatinGWASPipeline/ChromatinGWAS_Pipeline.R")
 #' @return a list with two objects: [[params]] which is a 4-column dataframe of the fit distribution parameters (beta, k, lambda, cvm) and [[pvals]] which is a dataframe containing the p-value of every bin.
 #' @export
 # TODO : how many columns are in [[pvals]]?
-mobile_process_single_file <- function(input_loc, map_df_filename,
+MobileProcessSingleFile <- function(input_loc, map_df_filename,
     exclude_X_Y = TRUE, mappability_threshold = 0.9,
-    estimation_method = "cvm", use_pvalue_thresh = F, p_value_thresh = 0.01,
-    step_size = 0.01) {
-    bin_df <- get_reads_df(input_loc, postprocess = T)
-    # For some reason, GetDistributionParametersWithOptim uses a Counts column
-    #   that does not exist elsewhere in the code. Adding it here.
-    bin_df$Counts <- bin_df$count
+    estimation_method = "cvm", use_pvalue_thresh = F,
+    p_value_thresh = 0.01, step_size = 0.01) {
 
-    if (estimation_method == "iteration") {
-        params_df <- PValueIterator(working_df = bin_df, step_size = step_size)
-        # only keep p values from last iteration; append these to bin_df
-        bin_df$p_value <- params_df$px[dim(params_df)[1]][[1]]
-        # this line useful if want to just keep rows above a certain p value threshold
-        if (use_pvalue_thresh) {
-            bin_df$p_value_thresh <- bin_df$p_value < p_value_thresh
-        }
+  bin_df <- GetReadsDF(input_loc, postprocess = T)
+  # For some reason, GetDistributionParametersWithOptim uses a Counts column
+  #   that does not exist elsewhere in the code. Adding it here.
+  bin_df$Counts <- bin_df$count
 
-    } else if (estimation_method == "cvm") {
-        if (exclude_X_Y) {
-            working_df <- bin_df[!(bin_df$chr %in% c("chrX", "chrY")), ]
-        } else {
-            working_df <- bin_df
-        }
-        if (!is.null(mappability_threshold)) {
-            map_df <- get_mappability(map_df_filename)
-            working_df <- left_join(x = working_df, y = map_df,
-                by = c("chr", "start_idx" = "start"))
-            working_df <- working_df[working_df$score > mappability_threshold, ]
-        }
-        params_df <- GetDistributionParametersWithOptim(working_df = working_df)
-        bin_df$p_value <- pgamma(q = bin_df$norm_count, shape = params_df$k,
-            rate = params_df$beta, lower.tail = FALSE)
+  if (estimation_method == "iteration") {
+    params_df <- PValueIterator(working_df = bin_df, step_size = step_size)
+    # only keep p values from last iteration; append these to bin_df
+    bin_df$p_value <- params_df$px[dim(params_df)[1]][[1]]
+    # this line is useful if want to just keep rows above a certain p value threshold
+    if (use_pvalue_thresh) {
+      bin_df$p_value_thresh <- bin_df$p_value < p_value_thresh
     }
-    return(list(params = params_df, pvals = bin_df))
+
+  } else if (estimation_method == "cvm") {
+    if (exclude_X_Y) {
+      working_df <- bin_df[!(bin_df$chr %in% c("chrX", "chrY")), ]
+    } else {
+      working_df <- bin_df
+    }
+    if (!is.null(mappability_threshold)) {
+      map_df <- GetMappability(map_df_filename)
+      working_df <- left_join(
+        x = working_df,
+        y = map_df,
+        by = c("chr", "start_idx" = "start")
+        )
+      working_df <- working_df[working_df$score > mappability_threshold, ]
+    }
+    params_df <- GetDistributionParametersWithOptim(working_df = working_df)
+    bin_df$p_value <- pgamma(
+      q = bin_df$norm_count,
+      shape = params_df$k,
+      rate = params_df$beta,
+      lower.tail = FALSE
+      )
+  }
+  return(list(params = params_df, pvals = bin_df))
 }
 
 #' Save a file containing chr, start, count, and pvalue of every non-blacklisted bin. ("Processed Fitted Coverage")
 #'
 #' @param input_loc location of the original processed coverage file
-#' @param processing_results the list provided by mobile_process_single_file; a list with the objects [[params]] (4-col dataframe of fitted gamma dist parameters) and [[pvals]] (dataframe of p-values for every bin)
+#' @param processing_results the list provided by MobileProcessSingleFile; a list with the objects [[params]] (4-col dataframe of fitted gamma dist parameters) and [[pvals]] (dataframe of p-values for every bin)
 #' @param output_loc location to save the file; parameters will be saved in the file 'location'.PARAMS
 #' @export
-save_full_data_frame <- function(input_loc, processing_results, output_loc) {
-    original_df <- get_reads_df(input_loc)
-    save_df <- left_join(original_df, processing_results[["pvals"]] %>%
-        select(one_of("chr", "start_idx", "p_value")),
-        by = c("chr", "start_idx"))
-    params_save_loc <- paste0(output_loc, ".PARAMS")
-    write.table(save_df, file = output_loc, sep = " ", row.names = F,
-        col.names = F, quote = F, append = F)
-    write.table(processing_results[["params"]], file = params_save_loc,
-        sep = ",", row.names = F, col.names = T, quote = F, append = F)
+SaveFullDataFrame <- function(input_loc, processing_results, output_loc) {
+  original_df <- GetReadsDF(input_loc)
+  save_df <- left_join(
+    original_df,
+    processing_results[["pvals"]] %>% 
+      select(one_of("chr", "start_idx", "p_value")),
+    by = c("chr", "start_idx")
+    )
+  params_save_loc <- paste0(output_loc, ".PARAMS")
+  write.table(
+    save_df, file = output_loc,
+    sep = " ", row.names = F,
+    col.names = F, quote = F, append = F
+    )
+  write.table(
+    processing_results[["params"]],
+    file = params_save_loc, sep = ",",
+    row.names = F, col.names = T,
+    quote = F, append = F
+    )
 }
 
 #' Ensures needed file exists, and if not told to overwrite, that final file does not exist
@@ -78,38 +96,39 @@ save_full_data_frame <- function(input_loc, processing_results, output_loc) {
 #' @param output_loc output processed fitted file location. If overwrite_file is F, ensures it does not yet exist.
 #' @param overwrite_file (default: F) if true, does not check if output_loc already exists.
 #' @export
-is_ok_to_proceed <- function(input_loc, output_loc, overwrite_file = F) {
-    if (!file.exists(input_loc)) {
-        print(paste0("File ", input_loc, " does not exist."))
-        return(FALSE)
-    }
+IsOkToProceed <- function(input_loc, output_loc, overwrite_file = F) {
+  if (!file.exists(input_loc)) {
+    print(paste0("File ", input_loc, " does not exist."))
+    return(FALSE)
+  }
 
-    file_info <- file.info(input_loc)
-    # TODO: Ensure file is not unprocessed.
-    if (file_info$size == 0) {
-        print(paste0("File ", input_loc, " is empty."))
-        return(FALSE)
-    }
+  file_info <- file.info(input_loc)
+  # TODO: Ensure file is not unprocessed.
+  if (file_info$size == 0) {
+    print(paste0("File ", input_loc, " is empty."))
+    return(FALSE)
+  }
 
-    if (file.exists(output_loc) & !overwrite_file) {
-        print(paste0("File ", output_loc, " already exists. Aborting fitting."))
-        return(FALSE)
-    }
-    return(TRUE)
+  if (file.exists(output_loc) & !overwrite_file) {
+    print(paste0("File ", output_loc, " already exists. Aborting fitting."))
+    return(FALSE)
+  }
+  return(TRUE)
 }
 
 option_list <- list(make_option("--input_loc"),
-                    make_option("--map_file", default = "/reference/mappability_5k.bed"),
-                    make_option("--overwrite_file", default = T),
-                    make_option("--output_loc", default = "p_values.txt"))
+  make_option("--map_file", default = "/reference/mappability_5k.bed"),
+  make_option("--overwrite_file", default = T),
+  make_option("--output_loc", default = "p_values.txt"))
 
 opts <- parse_args(OptionParser(option_list = option_list))
 
-if (is_ok_to_proceed(opts$input_loc, opts$output_loc, opts$overwrite_file)) {
-    processing_results <- mobile_process_single_file(
-        input_loc = opts$input_loc,
-        map_df_filename = opts$map_file)
-    save_full_data_frame(opts$input_loc, processing_results, opts$output_loc)
+if (IsOkToProceed(opts$input_loc, opts$output_loc, opts$overwrite_file)) {
+  processing_results <- MobileProcessSingleFile(
+    input_loc = opts$input_loc,
+    map_df_filename = opts$map_file
+    )
+  SaveFullDataFrame(opts$input_loc, processing_results, opts$output_loc)
 } else {
     quit(status = 1)
 }
