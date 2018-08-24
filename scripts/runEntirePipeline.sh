@@ -73,6 +73,18 @@ while getopts "h?pl:a:b:do:cx:t:s" o; do
     esac
 done
 
+# Test if data directory exists.
+if [ ! -d "/data" ]; then
+    echo "ERROR: No data directory. Did you forget to mount it?"
+    exit 1
+fi
+
+# Test if there's anything in the data directory.
+if [ ! "$(ls -A /data)" ]; then
+    echo "ERROR: Empty data directory. Did you mount the right directory?"
+    exit 1
+fi
+
 # Test for being able to read/write to /data.
 # $checkPermissions should only ever be set to false when we are using non-mounted data; i.e. testPipeline.sh, which has its own folders & data and doesn't have to worry about permissions.
 if [[ $checkPermissions == true ]]
