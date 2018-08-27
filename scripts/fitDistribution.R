@@ -2,7 +2,8 @@ suppressPackageStartupMessages(library(optparse))
 suppressPackageStartupMessages(library(plyr))
 suppressPackageStartupMessages(library(dplyr))
 source("/scripts/resources.R")
-source("/scripts/ChromatinGWASPipeline/ChromatinGWAS_Pipeline.R")
+source("/scripts/ChromatinGWASPipeline/FitDistributionWithCVM.R")
+source("/scripts/ChromatinGWASPipeline/UsefilFileLoadFunctionsv2.R")
 
 # Adjusted ProcessSingleFile method to work for this context
 #' Fit a gamma distribution and return the parameters and p-values of all bins
@@ -11,7 +12,6 @@ source("/scripts/ChromatinGWASPipeline/ChromatinGWAS_Pipeline.R")
 #' @param map_df_filename location of mappability track (must be same bin size as the coverage file)
 #' @param exclude_X_Y (default: T) exclude X & Y chromosomes while fitting parameters. heavily suggested.
 #' @param mappability_threshold (default: 0.9) minimum mappability of a bin for it to be included while fitting parameters.
-#' @param estimation_method (default: 'cvm') method of fitting distribution. options are 'iteration' and 'cvm'
 #' @param use_pvalue_thresh (default: F) only applicable when using the 'iteration' estimation method. if T, only use values below the given pvalue threshold to fit the distribution.
 #' @param p_value_thresh (default: 0.01) if using iterative estimation and use_pvalue_thresh is T, only use rows below this threshold to fit the distribution.
 #' @param step_size (default: 0.01) if using iterative estimation, the step size.
@@ -20,7 +20,7 @@ source("/scripts/ChromatinGWASPipeline/ChromatinGWAS_Pipeline.R")
 # TODO : how many columns are in [[pvals]]?
 MobileProcessSingleFile <- function(input_loc, map_df_filename,
     exclude_X_Y = TRUE, mappability_threshold = 0.9,
-    estimation_method = "cvm", use_pvalue_thresh = F,
+    use_pvalue_thresh = F,
     p_value_thresh = 0.01, step_size = 0.01) {
 
   bin_df <- GetReadsDF(input_loc, postprocess = T)
@@ -28,38 +28,28 @@ MobileProcessSingleFile <- function(input_loc, map_df_filename,
   #   that does not exist elsewhere in the code. Adding it here.
   bin_df$Counts <- bin_df$count
 
-  if (estimation_method == "iteration") {
-    params_df <- PValueIterator(working_df = bin_df, step_size = step_size)
-    # only keep p values from last iteration; append these to bin_df
-    bin_df$p_value <- params_df$px[dim(params_df)[1]][[1]]
-    # this line is useful if want to just keep rows above a certain p value threshold
-    if (use_pvalue_thresh) {
-      bin_df$p_value_thresh <- bin_df$p_value < p_value_thresh
-    }
-
-  } else if (estimation_method == "cvm") {
-    if (exclude_X_Y) {
-      working_df <- bin_df[!(bin_df$chr %in% c("chrX", "chrY")), ]
-    } else {
-      working_df <- bin_df
-    }
-    if (!is.null(mappability_threshold)) {
-      map_df <- GetMappability(map_df_filename)
-      working_df <- left_join(
-        x = working_df,
-        y = map_df,
-        by = c("chr", "start_idx" = "start")
-        )
-      working_df <- working_df[working_df$score > mappability_threshold, ]
-    }
-    params_df <- GetDistributionParametersWithOptim(working_df = working_df)
-    bin_df$p_value <- pgamma(
-      q = bin_df$norm_count,
-      shape = params_df$k,
-      rate = params_df$beta,
-      lower.tail = FALSE
-      )
+  if (exclude_X_Y) {
+    working_df <- bin_df[!(bin_df$chr %in% c("chrX", "chrY")), ]
+  } else {
+    working_df <- bin_df
   }
+  if (!is.null(mappability_threshold)) {
+    map_df <- GetMappability(map_df_filename)
+    working_df <- left_join(
+      x = working_df,
+      y = map_df,
+      by = c("chr", "start_idx" = "start")
+      )
+    working_df <- working_df[working_df$score > mappability_threshold, ]
+  }
+  params_df <- GetDistributionParametersWithOptim(working_df = working_df)
+  bin_df$p_value <- pgamma(
+    q = bin_df$norm_count,
+    shape = params_df$k,
+    rate = params_df$beta,
+    lower.tail = FALSE
+    )
+
   return(list(params = params_df, pvals = bin_df))
 }
 
