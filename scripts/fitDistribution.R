@@ -3,7 +3,7 @@ suppressPackageStartupMessages(library(plyr))
 suppressPackageStartupMessages(library(dplyr))
 source("/scripts/resources.R")
 source("/scripts/ChromatinGWASPipeline/FitDistributionWithCVM.R")
-source("/scripts/ChromatinGWASPipeline/UsefilFileLoadFunctionsv2.R")
+source("/scripts/ChromatinGWASPipeline/UsefulFileLoadingFunctionsv2.R")
 
 # Adjusted ProcessSingleFile method to work for this context
 #' Fit a gamma distribution and return the parameters and p-values of all bins

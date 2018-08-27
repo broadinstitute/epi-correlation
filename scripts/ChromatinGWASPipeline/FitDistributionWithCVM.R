@@ -6,7 +6,6 @@ suppressPackageStartupMessages(library(fBasics))
 suppressPackageStartupMessages(library(goftest))
 
 source('/scripts/ChromatinGWASPipeline/UsefulFileLoadingFunctionsv2.R')
-source('/scripts/ChromatinGWASPipeline/UsefulNoiseDistributionFitFunctions.R')
 
 GetParameterCombinations <- function(beta_range = c(0.5, 1),
   k_range = c(18, 25), lambda_range = c(0.6, 0.9)){
