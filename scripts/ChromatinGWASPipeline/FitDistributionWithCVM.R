@@ -7,6 +7,16 @@ suppressPackageStartupMessages(library(goftest))
 
 source('/scripts/ChromatinGWASPipeline/UsefulFileLoadingFunctionsv2.R')
 
+#' Get Parameter Combinations
+#'
+#'  Runs expand.grid on the range of beta, k and lambda to produce all possible combination of values for a lookup table.  Beta and k are parameters of a gamma distribution, and lambda represents the fraction of data corresponding to background. 
+#'
+#' @param beta_range (default: c(0.5, 1)) Numeric vector of values for beta.
+#' @param k_range (default: c(18, 25)) Numeric vector of values for k.
+#' @param lambda_range (default: c(0.6, 0.9)) Numeric vector of values for lambda.
+#'
+#' @return DF with 3 columns (beta, k, lambda) corresponding to all possible combinations of input parameters.
+#' @export
 GetParameterCombinations <- function(beta_range = c(0.5, 1),
   k_range = c(18, 25), lambda_range = c(0.6, 0.9)){
 
@@ -18,6 +28,12 @@ GetParameterCombinations <- function(beta_range = c(0.5, 1),
   return(params_all)
 }
 
+#' CVM Distance
+#'
+#' Calculates the Cramer von Mises distance between an empirical cumulative distribution function and an estimated cumulative distribution function.  The CVM calculation is modified with a heaviside distribution at a defined point to account for the non-parametric nature of some fraction of the data in question.  As a result, the CVM distance is only calculated for the left-handed side of the distribution (i.e. the lambda fraction of the total distribution).  The null distribution used here is pgamma_null.  
+#' For more information regarding cvm.test, see: https://www.rdocumentation.org/packages/goftest/versions/1.0-4/topics/cvm.test.
+#'
+#' @export
 cvm.test2 <- function(x, null="punif", ..., nullname) {
   xname <- deparse(substitute(x))
   nulltext <- deparse(substitute(null))
@@ -91,6 +107,16 @@ cvm.test2 <- function(x, null="punif", ..., nullname) {
   return(out)
 }
 
+#' Calculates CMV Function Used in cvm.test2
+#'
+#' Calculates the cumulative distribution function used in cvm.test2.
+#'
+#' @param q Quantile where cdf is calculated.
+#' @param params_df Data frame containing fields k, beta, and lambda.
+#' @param weight_value Defines where to start uniform distribution.
+#'
+#' @return pvalue for quantile Q
+#' @export
 pgamma_null <- function(q, params_df, weight_value){
   pgamma_mix <- params_df$lambda *
     pgamma(q = q, shape = params_df$k, rate = params_df$beta) +
@@ -99,7 +125,16 @@ pgamma_null <- function(q, params_df, weight_value){
   return(pgamma_mix)
 }
 
-# try calculating cost using Cramer Von Mises
+#' Get CVM Distance
+#'
+#' Calculates cvm test statistic using cvm.test_2.  Seems a little redundant, but it’s the function that optim will ultimately minimize.
+#'
+#' @param working_df Data frame containing information of counts for a given BAM.
+#' @param params_df Data frame containing fields k, beta, and lambda
+#' @param weight_value Defines where to start a uniform distribution.
+#'
+#' @return cvm test statistic (i.e. a distance)
+#' @export
 getCVMDistance <- function(working_df, params_df, weight_value){
   cvm_stat <- cvm.test2(
     x = working_df$Counts,
@@ -110,6 +145,21 @@ getCVMDistance <- function(working_df, params_df, weight_value){
   return(cvm_stat$statistic)
 }
 
+#' Get Distribution Parameters
+#'
+#' Calculates initial parameters by minimizing the cvm distance between an estimated distribution and observed data.  The parameter range passed to this function represents a coarse grid with a relatively wide range.  Setting the correct initial parameters for effective calculation with optim.
+#'
+#' @param working_df Data frame containing information of counts for a given BAM.
+#' @param lambda_range (default: seq(from = 0.6, to = 1, by = 0.05)) Lambda represents the data background fraction.  Lambda_range provides a span on plausible values for background
+#' @param fix_weight (default: TRUE) Defines whether to use a fixed value for where the uniform distribution added to the gamma distribution used in fitting transitions from 0 to 1.
+#' @param weight_value (default: 500) Defines where to start uniform distribution.
+#' @param use_log (default: FALSE) Should the logarithm of the counts data be used in fitting?
+#' @param length_out (default: 100) Refers to the size of the grid that will be searched to find the optimal value
+#' @param max_range_multiple (default: 300) Multiplies the initial beta and k calculated from the mean and variance of the original data to give the maximum of the range for the grid that will be searched.
+#' @param plot_data (default: FALSE) Should the results be plotted?
+#'
+#' @return Data frame (params_df) with initial conditions of parameters for gamma distribution (beta, k, lambda, cvm).
+#' @export
 GetDistributionParameters <- function(working_df,
       lambda_range = seq(from = 0.6, to = 1, by = 0.05), 
       fix_weight = TRUE, weight_value = 500,
@@ -218,7 +268,21 @@ GetDistributionParameters <- function(working_df,
   return(optim_params)
 }
 
-# get initial values from GetDistributionParameters with coarse-grained grid
+#' Get Dsitribution Parameters With Optim
+#'
+#' Calculates distribution parameters by minimizing the cvm distance between an estimated distribution and observed data using optim.  Calls all other functions listed in this script to determine initial parameters, calculate the cvm distance, and plot the results.
+#'
+#' @param working_df Data frame containing information of counts for a given BAM.
+#' @param lambda_range (default: seq(0.6, 0.9, by = 0.1)) Lambda represents the data background fraction.  Lambda_range provides a span on plausible values for background
+#' @param length_out (default: 3) Refers to the size of the grid that will be searched to find the optimal value
+#' @param fix_weight (default: TRUE) Defines whether to use a fixed value for where the uniform distribution added to the gamma distribution used in fitting transitions from 0 to 1.
+#' @param weight_value (default: 500) Defines where to start uniform distribution.
+#' @param plot_data (default: FALSE) Should the results be plotted?
+#' @param bin_width (default: 10) Width of bins in histogram, if data is plotted
+#' @param max_dens (default: 500) Maximum x-axis range for plotting data
+#'
+#' @return Data frame (params_df) with optimized parameters for gamma distribution (beta, k, lambda, cvm), and the name of the BAM if available.
+#' @export
 GetDistributionParametersWithOptim <- function(
       working_df, lambda_range = seq(0.6, 0.9, by = 0.1),
       length_out = 3, fix_weight = TRUE, weight_value = 500,
