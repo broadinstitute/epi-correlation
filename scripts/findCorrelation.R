@@ -9,12 +9,12 @@ source("/scripts/resources.R")
 #' @param wig1_location Location of the 1st fitted wig file
 #' @param wig2_location Location of the 2nd fitted wig file
 #' @return Dataframe containing the reads, pvalues of both given wig files,
-#' @export 
+#' @export
 GetPvalsOfBoth <- function(wig1_location, wig2_location) {
     rp_df <- GetReadsPvalsDF(wig1_location)
     rp_df <- bind_cols(
         rp_df,
-        GetReadsPvalsDF(wig2_location) %>% 
+        GetReadsPvalsDF(wig2_location) %>%
             select(one_of(c("count", "p_value")))
         )
     colnames(rp_df) <- c("chr", "start", "count_1", "pval_1", "count_2",

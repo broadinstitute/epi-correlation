@@ -173,7 +173,7 @@ run_pipeline ()
 {
     # Comments are in the debug statements.
     if [[ $debug == true ]]; then echo "Running IGVTools Count for ${1}; saving to ${2}"; fi
-    
+
     countParam=""
     if [[ $useCustomMemory == true ]]; then
         countParam="-m ${customMemoryAmt}"

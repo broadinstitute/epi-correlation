@@ -75,7 +75,7 @@ adjstAmnt=$((200-readLen))
 args="-e $adjstAmnt"
 # If this is paired end, change to --pairs.
 ($isPE) && args='--pairs'
-# If paired end, the above gives the parameter --pairs, 
+# If paired end, the above gives the parameter --pairs,
 #	if single end, it gives the parameter -e [extension factor]
 
 # If we are in debug mode, just print our command string.

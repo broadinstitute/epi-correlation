@@ -6,7 +6,7 @@ suppressPackageStartupMessages(library(dplyr))
 # They may be modified for generalized use later.
 
 #' Get File
-#' 
+#'
 #' load segmentation (peak info) from file, using APP_full, which is a string that looks like 'Alignment Post Processing xxxxx'
 #' Also needed: joined_df, which is a dataframe that contains information about the segmentation file location/APP
 #' can include a wanted chromosome, or not
@@ -64,7 +64,7 @@ GetSegmentationFile <- function(APP_full, joined_df, use_wanted_chr = FALSE,
     seg_df <- seg_df %>% filter(chr == filter_str)
   }
 
-  seg_df <- seg_df %>% 
+  seg_df <- seg_df %>%
     mutate(start_idx_round = floor(start_idx / bin_size) * bin_size) %>%
     mutate(end_idx_round = ceiling(end_idx/  bin_size) * bin_size)
   return(seg_df)
@@ -89,8 +89,8 @@ GetSegmentationFile <- function(APP_full, joined_df, use_wanted_chr = FALSE,
 #' @return data frame containing bin count information for a given specialized BAM.
 #' @export
 GetBinFile <- function(APP_full, joined_df, thresh = 500,
-    col_names = c("chr", "start_idx", "end_idx", "count"), 
-    use_wanted_chr = FALSE, wanted_chr = 19, 
+    col_names = c("chr", "start_idx", "end_idx", "count"),
+    use_wanted_chr = FALSE, wanted_chr = 19,
     reference_file = "/seq/epiprod02/Polina/IGVCount/5k/bin_bl.bed"){
 
   bin_file <- joined_df %>% dplyr::filter(Name == APP_full) %>%
@@ -130,7 +130,7 @@ GetBinFile <- function(APP_full, joined_df, thresh = 500,
     }
     bin_df$norm_count <- bin_df$count
   }
-  
+
   bin_df$thresh_count <- bin_df$norm_count
   bin_df$thresh_count[bin_df$thresh_count > thresh] <- thresh
   return(bin_df)
@@ -150,7 +150,7 @@ GetBinFile <- function(APP_full, joined_df, thresh = 500,
 #' @return Count data frame with any blacklisted bins removed.
 #' @export
 RemoveBlacklist <- function(bin_df,
-    reference_file = "Chr5kBinsReference_BlacklistRemoved.csv", 
+    reference_file = "Chr5kBinsReference_BlacklistRemoved.csv",
     join_fields = c("chr", "start_idx", "end_idx"), sep_str = ",",
     col_names = c("chr", "start_idx", "end_idx", "chr_str"),
     col_classes = c("character", "integer", "integer", "character")){
@@ -194,7 +194,7 @@ GetBinLocations <- function(bin_df, seg_df){
   bin_df$peak_score <- 0
   bin_df$has_peak <- rep("no", dim(bin_df)[1])
   if(!grepl("chr", bin_df$chr)){
-    bin_df$chr_str <- paste0("chr", bin_df$chr)  
+    bin_df$chr_str <- paste0("chr", bin_df$chr)
   } else{
     bin_df$chr_str <- bin_df$chr
   }
@@ -261,7 +261,7 @@ GetBinLocationsByChromosome <- function(bin_df, seg_df){
   getChrStartIdx <- function(sub_seg_df) {
     peak_idx_only <- ddply(
       .data = sub_seg_df,
-      .variables = c("start_idx_round", "end_idx_round"), 
+      .variables = c("start_idx_round", "end_idx_round"),
       .fun = GetSegmentationBinLocations
       )
   }
@@ -274,7 +274,7 @@ GetBinLocationsByChromosome <- function(bin_df, seg_df){
     )
   peak_idx_df <- peak_idx_df[, c("start_idx_round", "chr", "has_peak")]
   names(peak_idx_df) <- c("start_idx", "chr_str", "has_peak")
-  
+
   bin_df <- dplyr::full_join(bin_df, peak_idx_df)
   bin_df$has_peak[is.na(bin_df$has_peak)] <- "no"
 }
@@ -327,7 +327,7 @@ GetBinDf <- function(APP_full, joined_df, reference_df,
   # load bed file as bin_df
   bin_df <- GetBinFile(
     APP_full = APP_full, joined_df = joined_df,
-    use_wanted_chr = use_wanted_chr, 
+    use_wanted_chr = use_wanted_chr,
     wanted_chr = wanted_chr, reference_file = reference_file
     )
 
@@ -371,19 +371,19 @@ GetAPPTrackPairs <- function(
   if (!is.null(APP_list)){
     table_subset <- join(
       x = data.frame(Alignment.Post.Processing = APP_list),
-      y = lookup_table, 
+      y = lookup_table,
       by = "Alignment.Post.Processing", type = "left"
       )
   } else if (!is.null(Track_list)){
     table_subset <- join(
       x = data.frame(Name = Track_list),
-      y = lookup_table, 
+      y = lookup_table,
       by = "Name", type = "left"
       )
   } else {
     return(NULL)
   }
-  
+
   return(table_subset[, c("Alignment.Post.Processing", "Name")])
 }
 

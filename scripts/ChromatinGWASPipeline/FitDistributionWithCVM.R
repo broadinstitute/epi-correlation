@@ -9,7 +9,7 @@ source('/scripts/ChromatinGWASPipeline/UsefulFileLoadingFunctionsv2.R')
 
 #' Get Parameter Combinations
 #'
-#'  Runs expand.grid on the range of beta, k and lambda to produce all possible combination of values for a lookup table.  Beta and k are parameters of a gamma distribution, and lambda represents the fraction of data corresponding to background. 
+#'  Runs expand.grid on the range of beta, k and lambda to produce all possible combination of values for a lookup table.  Beta and k are parameters of a gamma distribution, and lambda represents the fraction of data corresponding to background.
 #'
 #' @param beta_range (default: c(0.5, 1)) Numeric vector of values for beta.
 #' @param k_range (default: c(18, 25)) Numeric vector of values for k.
@@ -30,7 +30,7 @@ GetParameterCombinations <- function(beta_range = c(0.5, 1),
 
 #' CVM Distance
 #'
-#' Calculates the Cramer von Mises distance between an empirical cumulative distribution function and an estimated cumulative distribution function.  The CVM calculation is modified with a heaviside distribution at a defined point to account for the non-parametric nature of some fraction of the data in question.  As a result, the CVM distance is only calculated for the left-handed side of the distribution (i.e. the lambda fraction of the total distribution).  The null distribution used here is pgamma_null.  
+#' Calculates the Cramer von Mises distance between an empirical cumulative distribution function and an estimated cumulative distribution function.  The CVM calculation is modified with a heaviside distribution at a defined point to account for the non-parametric nature of some fraction of the data in question.  As a result, the CVM distance is only calculated for the left-handed side of the distribution (i.e. the lambda fraction of the total distribution).  The null distribution used here is pgamma_null.
 #' For more information regarding cvm.test, see: https://www.rdocumentation.org/packages/goftest/versions/1.0-4/topics/cvm.test.
 #'
 #' @export
@@ -49,7 +49,7 @@ cvm.test2 <- function(x, null="punif", ..., nullname) {
       nullname <- paste("distribution", sQuote(nulltext))
     }
   }
-  
+
   stopifnot(is.numeric(x))
   x <- as.vector(x)
   n <- length(x)
@@ -58,7 +58,7 @@ cvm.test2 <- function(x, null="punif", ..., nullname) {
     F0 <- null
   } else {
     if (is.character(null)) {
-      F0 <- get(null, mode="function") 
+      F0 <- get(null, mode="function")
     } else {
       stop("Argument 'null' should be a function, or the name of a function")
     }
@@ -161,7 +161,7 @@ getCVMDistance <- function(working_df, params_df, weight_value){
 #' @return Data frame (params_df) with initial conditions of parameters for gamma distribution (beta, k, lambda, cvm).
 #' @export
 GetDistributionParameters <- function(working_df,
-      lambda_range = seq(from = 0.6, to = 1, by = 0.05), 
+      lambda_range = seq(from = 0.6, to = 1, by = 0.05),
       fix_weight = TRUE, weight_value = 500,
       use_log = FALSE, length_out = 100,
       max_range_multiple = 300, plot_data = FALSE){
@@ -192,7 +192,7 @@ GetDistributionParameters <- function(working_df,
       k_init,
       max_range_multiple * k_init,
       length.out = length_out
-      ), 
+      ),
     lambda_range = lambda_range
     )
 
@@ -200,7 +200,7 @@ GetDistributionParameters <- function(working_df,
   if (!fix_weight){
     weight_value <- 0.99 * max(working_df$Counts)
   }
-  
+
   cvm_stat_list <- ddply(
     .data = params_all,
     .variables = "params_num",
@@ -239,12 +239,12 @@ GetDistributionParameters <- function(working_df,
         aes(fill = has_peak),
         position = "identity", binwidth = bin_width, alpha = 0.5
         ) +
-      geom_line(data = sim_df, aes(x = x, y = y)) + 
+      geom_line(data = sim_df, aes(x = x, y = y)) +
       ggtitle(label = paste(working_df$Name[1], ": bin counts histogram"))
 
     plt2 <- plt_base +
       geom_histogram(position = "identity", binwidth = bin_width, alpha = 0.5) +
-      geom_line(data = sim_df, aes(x = x, y = y * optim_params$lambda)) + 
+      geom_line(data = sim_df, aes(x = x, y = y * optim_params$lambda)) +
       ggtitle(label = paste(
         working_df$Name[1], ": bin counts histogram (no peaks)"
         ))
@@ -254,7 +254,7 @@ GetDistributionParameters <- function(working_df,
           x = pgamma(
             q = working_df$Counts,
             shape = optim_params$k,
-            rate = optim_params$beta, 
+            rate = optim_params$beta,
             lower.tail = FALSE
             ),
           has_peak = working_df$has_peak
@@ -302,12 +302,12 @@ GetDistributionParametersWithOptim <- function(
     weight_value <- 0.99 * max(working_df$Counts)
   }
   # use optim to calculate parameters
-  optim_params <- optim(par = c(beta_init, k_init, lambda_init), 
+  optim_params <- optim(par = c(beta_init, k_init, lambda_init),
     fn = function(par) {
       params_df <- data.frame(beta = par[1], k = par[2], lambda = par[3])
-      getCVMDistance(params_df = params_df, 
+      getCVMDistance(params_df = params_df,
         weight_value = weight_value, working_df = working_df)
-    }, 
+    },
     method = "L-BFGS-B", lower = c(1e-5, 1e-5, 1e-5), upper = c(Inf, Inf, 1))
   # plot data
   if (plot_data){
@@ -315,7 +315,7 @@ GetDistributionParametersWithOptim <- function(
       max_dens = max_dens, beta = optim_params$par[1],
       k = optim_params$par[2], lambda = optim_params$par[3],
       working_df = working_df, bin_width = bin_width
-      )  
+      )
   }
   # calculate CVM with optimal parameters
   cvm <- getCVMDistance(
@@ -344,14 +344,14 @@ GetDistributionParametersWithOptim <- function(
         lambda = optim_params$par[3],
         cvm = cvm, Name = working_df$Name[1]
       )
-    ) 
+    )
   } else {
     return(
       data.frame(
         beta = optim_params$par[1], k = optim_params$par[2],
         lambda = optim_params$par[3], cvm = cvm
       )
-    ) 
+    )
   }
-  
+
 }

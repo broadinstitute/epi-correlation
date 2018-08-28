@@ -1,13 +1,13 @@
 #' Get DF containing only the reads from a processed coverage file.
-#' 
+#'
 #' @param location location of the processed coverage file
 #' @param postprocess (default F) add normalized count and thresholded count columns to the data frame.
 #' @param thresh (default 500) threshold to cap count column, if postprocessing.
-#' @return a dataframe of 3 cols: chr, start_idx, count. 
+#' @return a dataframe of 3 cols: chr, start_idx, count.
 #' @export
 GetReadsDF <- function(location, postprocess=F, thresh=500) {
   # TODO : Do we want to add a specific neat fail if we get an unprocessed
-  #   file? should be simple enough, check if first line has a "chrom=" 
+  #   file? should be simple enough, check if first line has a "chrom="
   #   substring.
 
   # If the user is calling this function, they don't want p-values. Ensure we

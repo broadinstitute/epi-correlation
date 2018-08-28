@@ -63,7 +63,7 @@ SaveFullDataFrame <- function(input_loc, processing_results, output_loc) {
   original_df <- GetReadsDF(input_loc)
   save_df <- left_join(
     original_df,
-    processing_results[["pvals"]] %>% 
+    processing_results[["pvals"]] %>%
       select(one_of("chr", "start_idx", "p_value")),
     by = c("chr", "start_idx")
     )

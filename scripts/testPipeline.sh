@@ -11,7 +11,7 @@ echo "Pipeline testing results: "
 
 echo "File A vs File A: "
 echo -n ${sameFiles}; echo -n "     "
-if [[ ${sameFiles} =~ "1" ]]; then 
+if [[ ${sameFiles} =~ "1" ]]; then
   echo "Pass"
 else
   echo "Fail"
@@ -21,7 +21,7 @@ echo
 
 echo "File A vs File B: "
 echo -n ${differentFiles}; echo -n "     "
-if [[ ${differentFiles} =~ "-0.652163" ]]; then 
+if [[ ${differentFiles} =~ "-0.652163" ]]; then
   echo "Pass"
 else
   echo "Fail"
