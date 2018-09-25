@@ -1,5 +1,5 @@
 # Histone Modification ChIP Similarity Metric: Correlation
-This package provides a method of determining similarity between two Histone Modification ChIP-seq aligned bam files.
+This package provides a method of determining similarity between two Histone Modification ChIP-seq **hg19** aligned bam files.
 
 # Using This Docker
 ## Installing
@@ -11,7 +11,7 @@ docker build -t correlation .
 ## Testing
 The docker automatically tests itself upon complication. You should see the following output somewhere in the docker output:
 ```
-Pipeline Testing Results: 
+Pipeline Testing Results:
 File A vs File A:
 1     PASS
 
