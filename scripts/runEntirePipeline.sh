@@ -148,13 +148,21 @@ then
     exit 1
 fi
 
-# If it's paired end, we want to append -p, if it's not, we want to append -l and the read length to later commands.
-if [[ $isPE == true ]]
-then
-    args="-p"
-else
-    args="-l ${readLen}"
-fi
+check_if_paired_end ()
+{
+    n_paired_lines = $( samtools view -c -f 1 $1 )
+    if (( n_paired_lines > 0 )); then
+        return true
+    else
+        return false
+    fi
+}
+
+find_average_read_length ()
+{
+    avg=$( samtools view $1 | awk '{print length($10)}' | head -10000 | sort -u | awk '{s+=$1} END {print s/NR}' )
+    return avg
+}
 
 # If the files aren't indexed, index them.
 check_for_bais ()
@@ -178,6 +186,15 @@ run_pipeline ()
     if [[ $useCustomMemory == true ]]; then
         countParam="-m ${customMemoryAmt}"
     fi
+
+    isPaired=$( check_if_paired_end ${1} )
+    if [[ isPaired == true ]]; then
+        args="-p"
+    else
+        len=$( find_average_read_length ${1} )
+        args="-l "$len
+    fi
+
     /scripts/runCount.sh ${args} -i ${1} -o ${tmpLoc}${2}.wig -x ${logLoc} ${countParam}
 
     if [[ $debug == true ]]; then echo "Fixing Coverage File ${2}"; fi
