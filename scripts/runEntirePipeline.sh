@@ -17,8 +17,8 @@ inLoc_1=1 # Location of 1st Bam
 inLoc_2=1 # Location of 2nd Bam
 readLen=0 # Read length, so we can calculate extension factor later
 tmpLoc="/tmp/" # Folder where to store all of the midway files (i.e. coverage.wig, coverage_processed.wig.PARAMS)
-outLoc="/data/output/"
-logLoc="/data/logs/"
+outLoc="./output/"
+logLoc="./logs/"
 # TODO: 2 options>
 isPE=false # Are the bams paired end?
 debug=false # Is debug mode on?
@@ -48,10 +48,10 @@ while getopts "h?pl:a:b:do:cx:t:sm:n" o; do
         exit 0
         ;;
     a)
-        inLoc_1="/data/"$OPTARG
+        inLoc_1=$OPTARG
         ;;
     b)
-        inLoc_2="/data/"$OPTARG
+        inLoc_2=$OPTARG
         ;;
     l)
         readLen=$OPTARG
@@ -93,13 +93,13 @@ while getopts "h?pl:a:b:do:cx:t:sm:n" o; do
 done
 
 # Test if data directory exists.
-if [ ! -d "/data" ]; then
+if [ ! -d "." ]; then
     echo "ERROR: No data directory. Did you forget to mount it?"
     exit 1
 fi
 
 # Test if there's anything in the data directory.
-if [ ! "$(ls -A /data)" ]; then
+if [ ! "$(ls -A .)" ]; then
     echo "ERROR: Empty data directory. Did you mount the right directory?"
     exit 1
 fi
@@ -109,7 +109,7 @@ fi
 # TODO : turn this into a function so we can call it on the tmploc, logloc, & outloc
 if [[ $checkPermissions == true ]]
 then
-    permissions=$( stat -c "%A" /data )
+    permissions=$( stat -c "%A" . )
     permissions_all=${permissions:7:3}
     # I am literally stripping out the last 3 characters of the human-readable permissions string, representing permissions for all users.
     if [[ $permissions_all != "rwx" ]]

@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Copy over our BAM files to somewhere we can mess with them.
-mkdir /data
 cp /test_data/*.bam /data/
 
 # Test data is of format TEST_A.bam & TEST_B.bam.

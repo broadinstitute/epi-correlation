@@ -39,7 +39,7 @@ task correlateBams {
   }
 
   command {
-    /scripts/runEntirePipeline.sh \
+    /scripts/runEntirePipeline.sh -d -s \
       ${if defined(in.extensionFactor) then "-l ${in.extensionFactor}" else "-p"} \
       -a ${in.bamA} \
       -b ${in.bamB}
@@ -49,7 +49,7 @@ task correlateBams {
     Output out = object {
       bamA: in.bamA,
       bamB: in.bamB,
-      corr: read_float("cor_out.txt"),
+      corr: read_float("output/cor_out.txt"),
     }
   }
 

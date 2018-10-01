@@ -38,6 +38,7 @@ ADD igv /home/user/igv
 
 ADD reference /reference
 ADD scripts /scripts
+WORKDIR /data
 
 # Tester - copy everything from base; /reference /scripts /usr/lib/R/library /home/usr/igv
 FROM base as tester
@@ -50,12 +51,4 @@ RUN \
 # Final - this is what the user should use
 FROM base as final
 
-ARG USER='user'
-
-WORKDIR /scripts
-
-RUN adduser -S ${USER} && \
-    chown ${USER} . && \
-    chown -R ${USER} /home/user/igv
-
-USER ${USER}
+ENV UMASK="ugo=rwx"

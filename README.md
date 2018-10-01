@@ -34,9 +34,9 @@ Parameters are explained in more detail below.
 
 # Parameters
 ### Data Directory
-For the docker to run properly, a `/data` directory must be mounted that contains BAM_A and BAM_B. In the above example, our data was stored in `~/ChIPseq_data`. Thus, the command to mount our location data directory to the docker data directory came out to be:
+For the docker to run properly, a `/data` directory must be mounted that contains BAM_A and BAM_B. In the above example, our data was stored in the `ChIPseq_data` subdirectory. Thus, the command to mount our location data directory to the docker data directory came out to be:
 ```
--v ~/ChIPseq_data:/data
+-v ${PWD}/ChIPseq_data:/data
 ```
 **This folder must be fully accessible for writing.** By default, all logs and output are printed to `/data/logs` and `/data/output`, so not having access to this folder will cause the pipeline to crash.
 Run the command below to allow full write access to your folder:
