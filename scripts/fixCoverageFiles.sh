@@ -4,12 +4,13 @@ set -e
 
 inpWig=coverage.wig
 outWig=coverage_processed.wig
+isMint=false
 
 # Usage string
 usage() { echo "Usage: $0 [-i </reference/coverage.wig>] [-o </output/coverage_processed.wig]" 1>&2; exit 1; }
 
 # Parsing Input
-while getopts "h?i:o:" o; do
+while getopts "h?i:o:n" o; do
 	case "${o}" in
 		h|\?)
 			usage
@@ -20,6 +21,9 @@ while getopts "h?i:o:" o; do
 			;;
 		o)
 			outWig=$OPTARG
+			;;
+		n)
+			isMint=true
 			;;
 		:)
 			echo "Option -$OPTARG requires an argument." >&2
@@ -48,5 +52,5 @@ do
 	sed -e "${prevLine},${nextLine}s/^/${curChr}\t/" ${inpWig} | awk "NR >= ${prevLine} && NR <= ${nextLine} {print} " >> ${inpWig}.tmp
 done
 
-Rscript /scripts/guaranteeBins.R ${inpWig}.tmp ${outWig}
+Rscript /scripts/guaranteeBins.R --input_loc ${inpWig}.tmp --output_loc ${outWig} $( [[ $isMint == true ]] && printf %s '--is_mint T' )
 rm ${inpWig}.tmp

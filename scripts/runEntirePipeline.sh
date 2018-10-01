@@ -26,12 +26,13 @@ checkPermissions=true
 singleThreaded=false
 useCustomMemory=false
 customMemoryAmt="1500m"
+isMint=false
 # TODO: Nickname parameter? (instead of coverage[etc], cov_17767[etc] ... )
 
-usage() { echo "Usage: $0 [-p|-l <0-200>] -a <input bam> -b <input bam> [-t </tmp/>] [-o </data/output>] [-x </data/logs>] [-d] [-m [0-9]+(m|g)]" 1>&2; exit 1;}
+usage() { echo "Usage: $0 [-p|-l <0-200>] [-n] -a <input bam> -b <input bam> [-t </tmp/>] [-o </data/output>] [-x </data/logs>] [-d] [-m [0-9]+(m|g)]" 1>&2; exit 1;}
 # Reusing some logic from runCount.sh
 #   key points are: input (bam file), output (folder), l/p (paired or read length)
-while getopts "h?pl:a:b:do:cx:t:sm:" o; do
+while getopts "h?pl:a:b:do:cx:t:sm:n" o; do
     case "${o}" in
 	d)
 	    debug=true
@@ -79,6 +80,9 @@ while getopts "h?pl:a:b:do:cx:t:sm:" o; do
     m)
         useCustomMemory=true
         customMemoryAmt=$OPTARG
+        ;;
+    n)
+        isMint=true
         ;;
     :)
         echo "Option -$OPTARG requires an argument." >&2
@@ -181,7 +185,7 @@ run_pipeline ()
     /scripts/runCount.sh ${args} -i ${1} -o ${tmpLoc}${2}.wig -x ${logLoc} ${countParam}
 
     if [[ $debug == true ]]; then echo "Fixing Coverage File ${2}"; fi
-    /scripts/fixCoverageFiles.sh -i ${tmpLoc}${2}.wig -o ${tmpLoc}${2}_processed.wig
+    /scripts/fixCoverageFiles.sh $( [[ $isMint == true ]] && printf %s '-n' ) -i ${tmpLoc}${2}.wig -o ${tmpLoc}${2}_processed.wig
 
     if [[ $debug == true ]]; then echo "Fitting distribution to ${2}"; fi
     Rscript /scripts/fitDistribution.R --input_loc ${tmpLoc}${2}_processed.wig --output_loc ${tmpLoc}${2}_p_value.wig
