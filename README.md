@@ -68,3 +68,8 @@ This docker uses two igvtools scripts, both of which run using the Java VM. The 
 
 ### Single Threaded Mode
 The parameter `-s` controls whether or not the pipeline will run in single or double mode. By default, the pipeline will be run on both BAM_A and BAM_B simultaneously. On older machines or weaker VMs, this provides no benefit, so it may be worth adding the `-s` flag to force them to run one after the other.
+
+### Processing Mint-ChIP Data
+Note: Still in testing.
+
+The parameter `-n` marks both .bam files as Mint ChIP data sets. This is required when working with Mint ChIP data, as it tells the pipeline to remove any data overlapping Mint-ChIP specific blacklisted regions. For now, the parameter `-p` is still required to mark the data as paired-end.
