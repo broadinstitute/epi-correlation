@@ -15,6 +15,8 @@ umask ugo=rwx
 # Setting variables
 inLoc_1=1 # Location of 1st Bam
 inLoc_2=1 # Location of 2nd Bam
+baiLoc_1=1
+baiLoc_2=1
 readLen=0 # Read length, so we can calculate extension factor later
 tmpLoc="/tmp/" # Folder where to store all of the midway files (i.e. coverage.wig, coverage_processed.wig.PARAMS)
 outLoc="./output/"
@@ -32,7 +34,7 @@ isMint=false
 usage() { echo "Usage: $0 [-p|-l <0-200>] [-n] -a <input bam> -b <input bam> [-t </tmp/>] [-o </data/output>] [-x </data/logs>] [-d] [-m [0-9]+(m|g)]" 1>&2; exit 1;}
 # Reusing some logic from runCount.sh
 #   key points are: input (bam file), output (folder), l/p (paired or read length)
-while getopts "h?pl:a:b:do:cx:t:sm:n" o; do
+while getopts "h?pl:a:b:do:cx:t:sm:ni:j:" o; do
     case "${o}" in
 	d)
 	    debug=true
@@ -52,6 +54,12 @@ while getopts "h?pl:a:b:do:cx:t:sm:n" o; do
         ;;
     b)
         inLoc_2=$OPTARG
+        ;;
+    i)
+        baiLoc_1=$OPTARG
+        ;;
+    j)
+        baiLoc_2=$OPTARG
         ;;
     l)
         readLen=$OPTARG
@@ -161,14 +169,25 @@ else
 fi
 
 # If the files aren't indexed, index them.
+
 check_for_bais ()
 {
-    if [[ ! -f ${1}.bai  && ! -f ${1%.*}.bai ]]; then
-        if [[ $debug == true ]]; then echo "Creating index file for ${1}"; fi
-        if [[ $useCustomMemory == true ]]; then
-            java -Xmx$customMemoryAmt -Djava.awt.headless=true -jar /usr/local/bin/igvtools.jar index ${1} > ${logLoc}indexLog.txt
-        else
-            igvtools index ${1} > ${logLoc}indexLog.txt
+    # If no bai location given...
+    if [[ ${2} == 1 ]]; then
+        # if no auto found bais...
+        if [[ ! -f ${1}.bai  && ! -f ${1%.*}.bai ]]; then
+            # create.
+            if [[ $debug == true ]]; then echo "Creating index file for ${1}"; fi
+            if [[ $useCustomMemory == true ]]; then
+                java -Xmx$customMemoryAmt -Djava.awt.headless=true -jar /usr/local/bin/igvtools.jar index ${1} > ${logLoc}indexLog.txt
+            else
+                igvtools index ${1} > ${logLoc}indexLog.txt
+            fi
+        fi
+    else
+        if [[ ! -f ${1}.bai && ! -f ${1%.*}.bai ]]; then
+            # if passed .bai isn't in an expected location, copy it to [name].bam.bai
+            cp ${2} ${1}.bai
         fi
     fi
 }
@@ -197,8 +216,8 @@ run_pipeline ()
 # Allowing toggling of single-threaded mode to test this.
 if [[ $singleThreaded == true ]]
 then
-    check_for_bais ${inLoc_1}
-    check_for_bais ${inLoc_2}
+    check_for_bais ${inLoc_1} ${baiLoc_1}
+    check_for_bais ${inLoc_2} ${baiLoc_2}
 
     run_pipeline ${inLoc_1} coverage_a
     run_pipeline ${inLoc_2} coverage_b

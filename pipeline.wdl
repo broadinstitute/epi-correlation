@@ -3,6 +3,8 @@ version 1.0
 struct PairInfo {
   File bamA
   File bamB
+  File baiA
+  File baiB
   Int? extensionFactor
 }
 
@@ -39,10 +41,12 @@ task correlateBams {
   }
 
   command {
-    /scripts/runEntirePipeline.sh -d -s \
+    /scripts/runEntirePipeline.sh -d -n \
       ${if defined(in.extensionFactor) then "-l ${in.extensionFactor}" else "-p"} \
       -a ${in.bamA} \
-      -b ${in.bamB}
+      -b ${in.bamB} \
+      -i ${in.baiA} \
+      -j ${in.baiB}
   }
 
   output {
