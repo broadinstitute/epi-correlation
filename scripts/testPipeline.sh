@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Copy over our BAM files to somewhere we can mess with them.
-cp /test_data/*.bam /data/
+cp /test_data/*.bam .
 
 # Test data is of format TEST_A.bam & TEST_B.bam.
 differentFiles=$(/scripts/runEntirePipeline.sh -a TEST_A.bam -b TEST_B.bam -c)

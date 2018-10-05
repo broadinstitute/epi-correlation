@@ -242,7 +242,7 @@ then
     run_pipeline ${inLoc_1} coverage_a
     run_pipeline ${inLoc_2} coverage_b
 else
-    check_for_bais ${inLoc_1} & check_for_bais ${inLoc_2} & wait
+    check_for_bais ${inLoc_1} ${baiLoc_1} & check_for_bais ${inLoc_2} ${baiLoc_2} & wait
 
     run_pipeline ${inLoc_1} coverage_a & run_pipeline ${inLoc_2} coverage_b & wait
 fi
