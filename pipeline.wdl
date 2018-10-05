@@ -40,8 +40,12 @@ task correlateBams {
     String dockerImage
   }
 
+  Int bamASize = ceil(size(in.bamA, 'GB'))
+  Int bamBSize = ceil(size(in.bamB, 'GB'))
+  Int memory = 2 * (if bamASize > bamBSize then bamASize else bamBSize) + 1
+
   command {
-    /scripts/runEntirePipeline.sh -d -n \
+    /scripts/runEntirePipeline.sh -d -n -m ${(memory - 1)/2}g \
       ${if defined(in.extensionFactor) then "-l ${in.extensionFactor}" else "-p"} \
       -a ${in.bamA} \
       -b ${in.bamB} \
@@ -59,7 +63,8 @@ task correlateBams {
 
   runtime {
     docker: dockerImage
-    cpu: 2
+    cpu: 4
+    memory: memory + "G"
     disks: "local-disk 25 HDD"
   }
 }
