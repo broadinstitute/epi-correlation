@@ -24,11 +24,11 @@ If the docker failed to compile & one or more of these say FAIL, something went 
 ## Usage
 `-h` Output:
 ```
-docker run --rm -v [data dir]:/data -it correlation /scripts/runEntirePipeline.sh [-p|-l <0-200>] -a <input bam> -b <input bam> [-t </tmp/>] [-o </data/output>] [-x </data/logs>] [-d] [-m [0-9]+(m|g)] [-s]
+docker run --rm -v [data dir]:/data -it correlation /scripts/runEntirePipeline.sh -a <input bam> -b <input bam> [-t </tmp/>] [-o </data/output>] [-x </data/logs>] [-d] [-m [0-9]+(m|g)] [-s]
 ```
 Example:
 ```
-docker run --rm -v ~/ChIPseq_data:/data -it correlation /scripts/runEntirePipeline.sh -p -a /data/BAM_A.bam -b /data/BAM_B.bam
+docker run --rm -v ~/ChIPseq_data:/data -it correlation /scripts/runEntirePipeline.sh -a /data/BAM_A.bam -b /data/BAM_B.bam
 ```
 Parameters are explained in more detail below.
 
@@ -45,9 +45,13 @@ chmod a+w [folder]
 ```
 
 ### Paired End vs Single End
-The pipeline requires different input independing on the style of ChIP-seq done. If the .bams are paired end, the parameter `-p` is required. If they are single-end, the parameter `-l [read length]` is required.
+The pipeline requires different input independing on the style of ChIP-seq done. The pipeline now automatically determines whether the data is paired end or single end. If the data is single ended, it uses the first 10,000 reads to calculate an average read length.
 
-For example, for a single-end ChIP seq bam with a read length of 46, the command would be `-l 46`. For a paired-end ChIP seq bam, the command would be `-p`.
+To manually specify paired end or single end & read length, use the following commands:
+
+For paired end data, specify the flag `-p`.
+
+For single end data, specify the flag `-l` followed by the average read length. For example, for reads of length 36bp, the parameter would be `-l 36`.
 
 ### BAM Files
 Parameters `-a` and `-b` are the names of the input BAM files. This should be their name relative to the data directory, so include the names of any subfolders.

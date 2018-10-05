@@ -17,18 +17,19 @@ inLoc_1=1 # Location of 1st Bam
 inLoc_2=1 # Location of 2nd Bam
 baiLoc_1=1
 baiLoc_2=1
-readLen=0 # Read length, so we can calculate extension factor later
 tmpLoc="/tmp/" # Folder where to store all of the midway files (i.e. coverage.wig, coverage_processed.wig.PARAMS)
 outLoc="./output/"
 logLoc="./logs/"
 # TODO: 2 options>
-isPE=false # Are the bams paired end?
 debug=false # Is debug mode on?
 checkPermissions=true
 singleThreaded=false
 useCustomMemory=false
 customMemoryAmt="1500m"
 isMint=false
+# Paired vs Single End parameters
+endSpecified=false # set to true if they give us info
+endArgs="" # set to -p or -l <n>
 # TODO: Nickname parameter? (instead of coverage[etc], cov_17767[etc] ... )
 
 usage() { echo "Usage: $0 [-p|-l <0-200>] [-n] -a <input bam> -b <input bam> [-t </tmp/>] [-o </data/output>] [-x </data/logs>] [-d] [-m [0-9]+(m|g)]" 1>&2; exit 1;}
@@ -40,7 +41,12 @@ while getopts "h?pl:a:b:do:cx:t:sm:ni:j:" o; do
 	    debug=true
 	    ;;
     p)
-        isPE=true
+        endSpecified=true
+        endArgs="-p"
+        ;;
+    l)
+        endSpecified=true
+        endArgs="-l ${OPTARG}"
         ;;
     s)
         singleThreaded=true
@@ -60,9 +66,6 @@ while getopts "h?pl:a:b:do:cx:t:sm:ni:j:" o; do
         ;;
     j)
         baiLoc_2=$OPTARG
-        ;;
-    l)
-        readLen=$OPTARG
         ;;
     o)
         if [[ ! ${OPTARG: -1} == "/" ]]; then
@@ -139,14 +142,6 @@ if [ ! -d "$outLoc" ]; then
     mkdir $outLoc
 fi
 
-# Either the APP must be Paired End, or they must give us a read length so we can calculate
-#	extension factor.
-if (( $readLen <= 0 )) && [[ $isPE == false ]]
-then
-	echo "ReadLen must provided if the APP is not Paired End."
-	exit 1
-fi
-
 # They must provide BAM file locations.
 if [[ ${inLoc_1} == 1 ]]
 then
@@ -160,13 +155,23 @@ then
     exit 1
 fi
 
-# If it's paired end, we want to append -p, if it's not, we want to append -l and the read length to later commands.
-if [[ $isPE == true ]]
-then
-    args="-p"
-else
-    args="-l ${readLen}"
-fi
+# Count the number of paired end reads. If > 0, means this is PE data.
+check_if_paired_end ()
+{
+    n_paired_lines=$( samtools view -c -f 1 $1 )
+    if (( $n_paired_lines > 0 )); then
+        echo true
+    else
+        echo false
+    fi
+}
+
+# Take the length of the first 10k reads and find the average
+find_average_read_length ()
+{
+    avg=$( samtools view $1 | awk '{print length($10)}' | head -10000 | sort -u | awk '{s+=$1} END {print s/NR}' )
+    echo avg
+}
 
 # If the files aren't indexed, index them.
 
@@ -197,11 +202,26 @@ run_pipeline ()
     # Comments are in the debug statements.
     if [[ $debug == true ]]; then echo "Running IGVTools Count for ${1}; saving to ${2}"; fi
 
+    # TODO : fold this into the args construction below.
     countParam=""
     if [[ $useCustomMemory == true ]]; then
         countParam="-m ${customMemoryAmt}"
     fi
-    /scripts/runCount.sh ${args} -i ${1} -o ${tmpLoc}${2}.wig -x ${logLoc} ${countParam}
+
+    # If the user hasn't told us whether or not it's paired end...
+    # Automatically determine whether the BAM is paired end
+    #   if not, find the average read length
+    if [[ $endSpecified == false ]]; then
+        isPaired=$(check_if_paired_end ${1})
+        if [[ $isPaired == true ]]; then
+            endArgs="-p"
+        else
+            len=$( find_average_read_length ${1} )
+            endArgs="-l "$len
+        fi
+    fi
+
+    /scripts/runCount.sh ${endArgs} -i ${1} -o ${tmpLoc}${2}.wig -x ${logLoc} ${countParam}
 
     if [[ $debug == true ]]; then echo "Fixing Coverage File ${2}"; fi
     /scripts/fixCoverageFiles.sh $( [[ $isMint == true ]] && printf %s '-n' ) -i ${tmpLoc}${2}.wig -o ${tmpLoc}${2}_processed.wig
@@ -212,8 +232,8 @@ run_pipeline ()
     if [[ $debug == true ]]; then echo "Fitting pipeline complete on $1"; fi
 }
 
-# I have a theory that trying to run in parallel causes extreme slow-down in single-core machines.
-# Allowing toggling of single-threaded mode to test this.
+# Allows the user to run all commands in series rather than attempting
+#   to do a few in parallel.
 if [[ $singleThreaded == true ]]
 then
     check_for_bais ${inLoc_1} ${baiLoc_1}
