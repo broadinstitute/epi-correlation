@@ -12,11 +12,40 @@
 set -e
 umask ugo=rwx
 
+# GETOPT option parsing ===
+# ARGUMENT_LIST=(
+#     "bam-a:",
+#     "bam-b:",
+#     "bai-a:",
+#     "bai-b:",
+#     "debug",
+#     "temporary:",
+#     "output:",
+#     "logs:",
+#     "single-threaded",
+#     "custom-memory:",
+#     "mint",
+#     "bam-type:",
+#     "paired",
+#     "avg-read-length:"
+# )
+# SHORT_ARGUMENT_LIST=(
+#     "d",
+#     "m",
+#     "p",
+#     "-l"
+# )
+# opts=$(getopt \
+#     --longoptions "$(printf "%s," "${ARGUMENT_LIST[@]}")" \
+#     --options "$(printf "%s," "${SHORT_ARGUMENT_LIST[@]}")") \
+#     -- "$@"
+#     )
+
 # Setting variables
-inLoc_1=1 # Location of 1st Bam
-inLoc_2=1 # Location of 2nd Bam
-baiLoc_1=1
-baiLoc_2=1
+inLoc_1="" # Location of 1st Bam
+inLoc_2="" # Location of 2nd Bam
+baiLoc_1=""
+baiLoc_2=""
 tmpLoc="/tmp/" # Folder where to store all of the midway files (i.e. coverage.wig, coverage_processed.wig.PARAMS)
 outLoc="./output/"
 logLoc="./logs/"
@@ -103,6 +132,7 @@ while getopts "h?pl:a:b:do:cx:t:sm:ni:j:" o; do
     esac
 done
 
+# TODO : add unit tests for all of these failures.
 # Test if data directory exists.
 if [ ! -d "." ]; then
     echo "ERROR: No data directory. Did you forget to mount it?"
@@ -143,13 +173,13 @@ if [ ! -d "$outLoc" ]; then
 fi
 
 # They must provide BAM file locations.
-if [[ ${inLoc_1} == 1 ]]
+if [[ -z "${inLoc_1}" ]]
 then
     echo "BAM file 1 location must be provided."
     exit 1
 fi
 
-if [[ ${inLoc_2} == 1 ]]
+if [[ -z "${inLoc_2}" ]]
 then
     echo "BAM file 2 location must be provided."
     exit 1
@@ -170,7 +200,7 @@ check_if_paired_end ()
 find_average_read_length ()
 {
     avg=$( samtools view $1 | awk '{print length($10)}' | head -10000 | sort -u | awk '{s+=$1} END {print s/NR}' )
-    echo avg
+    echo $avg
 }
 
 # If the files aren't indexed, index them.
@@ -178,7 +208,7 @@ find_average_read_length ()
 check_for_bais ()
 {
     # If no bai location given...
-    if [[ ${2} == 1 ]]; then
+    if [[ -z "${2}" ]]; then
         # if no auto found bais...
         if [[ ! -f ${1}.bai  && ! -f ${1%.*}.bai ]]; then
             # create.
