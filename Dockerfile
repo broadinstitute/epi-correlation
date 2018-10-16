@@ -1,4 +1,4 @@
-FROM alpine as base
+FROM google/cloud-sdk:alpine as base
 
 ARG IGVTOOLS_VERSION='2.3.98'
 ARG SAMTOOLS_VERSION='1.9'
@@ -11,11 +11,11 @@ RUN \
       bash \
       build-base \
       curl \
+      ncurses-dev \
       openjdk8-jre \
       R \
       R-dev \
-      ncurses \
-       ncurses-dev musl-dev g++ make zlib-dev \
+      zlib-dev \
       && \
     \
     # Install R packages
@@ -42,9 +42,9 @@ RUN \
     apk del \
       build-base \
       curl \
+      ncurses-dev \
       R-dev \
-      ncurses \
-      ncurses-dev musl-dev g++ make zlib-dev
+      zlib-dev
 
 ADD igv /home/user/igv
 
