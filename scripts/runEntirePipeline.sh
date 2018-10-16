@@ -244,7 +244,7 @@ run_pipeline ()
     # Automatically determine whether the BAM is paired end
     #   if not, find the average read length
     if [[ $endSpecified == false ]]; then
-        if [[ $debug == true ]]; then echo "Finding paired/single status & read length if applicable for ${1}."
+        if [[ $debug == true ]]; then echo "Finding paired/single status & read length if applicable for ${1}."; fi
         isPaired=$(check_if_paired_end ${1})
         if [[ $isPaired == true ]]; then
             endArgs="-p"
