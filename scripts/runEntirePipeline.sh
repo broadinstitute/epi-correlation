@@ -123,6 +123,8 @@ while getopts "h?pl:a:b:do:cx:t:sm:ni:j:" o; do
         ;;
     n)
         isMint=true
+        endSpecified=true
+        endArgs="-p"
         ;;
     :)
         echo "Option -$OPTARG requires an argument." >&2
@@ -242,6 +244,7 @@ run_pipeline ()
     # Automatically determine whether the BAM is paired end
     #   if not, find the average read length
     if [[ $endSpecified == false ]]; then
+        if [[ $debug == true ]]; then echo "Finding paired/single status & read length if applicable for ${1}."
         isPaired=$(check_if_paired_end ${1})
         if [[ $isPaired == true ]]; then
             endArgs="-p"
