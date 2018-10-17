@@ -3,7 +3,6 @@
 set -e
 
 INPUTS="$1"
-OUTPUT_DIR="$2"
 
 # TODO:
 # run an actual reporting script
@@ -14,5 +13,3 @@ OUTPUT_DIR="$2"
 # nameA   nameB   corr  group
 cp "${INPUTS}" report.tsv
 touch report.pdf
-
-gsutil cp report.* "${OUTPUT_DIR}/"

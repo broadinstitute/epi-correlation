@@ -1,6 +1,7 @@
 {
   "Correlation.dockerImage": "us.gcr.io/some-project/epi-correlation",
-  "Correlation.outputDir": "gs://some-output-bucket/out-dir-1234",
+  "Correlation.outputsDir": "gs://some-output-bucket/out-dir-1234",
+  "Correlation.outputsJson": "gs://some-output-jsons-bucket/out-1234.json",
   "Correlation.inputPairs": [{
     "inA": {
       "name": "APP 5",

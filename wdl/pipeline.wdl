@@ -28,7 +28,10 @@ workflow Correlation {
     Array[OutputPair] existingOutputs = []
 
     # GCS folder where to store the output data
-    String outputDir
+    String outputsDir
+
+    # GCS file in which to store the output JSON
+    String outputsJson
 
     # Docker image for the correlation pipeline
     String dockerImage
@@ -44,15 +47,12 @@ workflow Correlation {
     }
   }
 
-  Array[OutputPair] outputPairs = flatten([
-    correlatePair.out,
-    existingOutputs,
-  ])
-
-  call generateReports {
+  call reportOutputs {
     input:
-      outputPairs = outputPairs,
-      outputDir = outputDir,
+      existingOutputs = existingOutputs,
+      newOutputs = correlatePair.out,
+      outputsDir = outputsDir,
+      outputsJson = outputsJson,
       dockerImage = dockerImage,
   }
 }
@@ -102,18 +102,32 @@ task correlatePair {
   }
 }
 
-task generateReports {
+task reportOutputs {
   input {
-    Array[OutputPair] outputPairs
-    String outputDir
+    Array[OutputPair] existingOutputs
+    Array[OutputPair] newOutputs
+    String outputsDir
+    String outputsJson
 
     String dockerImage
   }
 
-  File reportInputs = write_objects(outputPairs)
+  File reportInputs = write_objects(flatten([
+    existingOutputs,
+    newOutputs,
+  ]))
+
+  File newOutputsJson = write_json(object {
+    outputs: newOutputs,
+  })
 
   command {
+    set -e
+
     /scripts/generateReports.sh '~{reportInputs}'
+
+    gsutil cp report.* '~{outputsDir}/'
+    gsutil cp '~{newOutputsJson}' '~{outputsJson}'
   }
 
   runtime {
