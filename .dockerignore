@@ -11,3 +11,5 @@
 !/igv/**/*
 !/test_data
 !/test_data/**/*
+!/wdl
+!/wdl/*

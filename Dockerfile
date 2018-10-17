@@ -1,3 +1,4 @@
+### Base image
 FROM google/cloud-sdk:alpine as base
 
 ARG IGVTOOLS_VERSION='2.3.98'
@@ -52,15 +53,25 @@ ADD reference /reference
 ADD scripts /scripts
 WORKDIR /data
 
-# Tester - copy everything from base; /reference /scripts /usr/lib/R/library /home/usr/igv
+
+
+### Tester image - copy everything from base; /reference /scripts /usr/lib/R/library /home/usr/igv
 FROM base as tester
+
 ADD test_data /test_data
+ADD wdl /wdl
 
-RUN \
-  # run the test command
-  /scripts/testPipeline.sh
+ARG WOMTOOL_VERSION='35'
 
-# Final - this is what the user should use
+RUN wget https://github.com/broadinstitute/cromwell/releases/download/${WOMTOOL_VERSION}/womtool-${WOMTOOL_VERSION}.jar -O womtool.jar
+
+RUN /scripts/testPipeline.sh
+
+RUN java -jar womtool.jar validate /wdl/pipeline.wdl -i /wdl/example_inputs.json
+
+
+
+### Final image - this is what the user should use
 FROM base as final
 
 ENV UMASK="ugo=rwx"
