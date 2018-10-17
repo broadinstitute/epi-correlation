@@ -1,0 +1,44 @@
+{
+  "Correlation.dockerImage": "us.gcr.io/some-project/epi-correlation",
+  "Correlation.outputDir": "gs://some-output-bucket/out-dir-1234",
+  "Correlation.inputPairs": [{
+    "inA": {
+      "name": "APP 5",
+      "bam": "gs://some-input-bucket/app_5.bam"
+    },
+    "inB": {
+      "name": "APP 6",
+      "bam": "gs://some-input-bucket/app_6.bam",
+      "bai": "gs://some-input-bucket/app_6.bai"
+    }
+  },{
+    "inA": {
+      "name": "APP 6",
+      "bam": "gs://some-input-bucket/app_6.bam",
+      "bai": "gs://some-input-bucket/app_6.bai"
+    },
+    "inB": {
+      "name": "APP 7",
+      "bam": "gs://some-input-bucket/app_7.bam"
+    }
+  },{
+    "inA": {
+      "name": "APP 7",
+      "bam": "gs://some-input-bucket/app_7.bam"
+    },
+    "inB": {
+      "name": "APP 8",
+      "bam": "gs://some-input-bucket/app_8.bam"
+    },
+    "extensionFactor": 36
+  }],
+  "Correlation.existingOutputs": [{
+    "nameA": "APP 5",
+    "nameB": "APP 7",
+    "corr": 0.7
+  },{
+    "nameA": "APP 5",
+    "nameB": "APP 8",
+    "corr": 0.9
+  }]
+}

@@ -4,7 +4,6 @@
 !/.gitignore
 !/cloudbuild.yaml
 !/Dockerfile
-!/pipeline.wdl
 !/README.md
 
 !/reference/*.bed
@@ -16,3 +15,6 @@
 !/test_data/**/*
 !/igv/
 !/igv/**/*
+!/wdl/
+!/wdl/*.json
+!/wdl/*.wdl
