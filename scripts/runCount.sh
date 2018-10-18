@@ -8,9 +8,10 @@ OPTIND=1
 
 # Setting variables
 BAMLoc=1 # Location of BAM
+endSpecified=false
+isPE=false # Is the BAM paired end?
 readLen=0 # Read length, so we can calculate extension factor later
 outputLoc="coverage.wig" # Output location
-isPE=false # Is the BAM paired end?
 debug=false # Is debug mode on?
 useCustomMemory=false
 customMemoryAmt="1500m"
@@ -25,7 +26,8 @@ while getopts "h?pl:i:o:dx:m:" o; do
 	    debug=true
 	    ;;
     p)
-        isPE=true
+        endSpecified=true
+        endArgs="--pairs"
         ;;
     h|\?)
         usage
@@ -35,7 +37,9 @@ while getopts "h?pl:i:o:dx:m:" o; do
         BAMLoc=$OPTARG
         ;;
     l)
-        readLen=$OPTARG
+        endSpecified=true
+        echo endArgs
+        endArgs="-e $((200 - $OPTARG))"
         ;;
 	o)
 	    outputLoc=$OPTARG
@@ -57,9 +61,9 @@ done
 
 # Either the BAM must be Paired End, or they must give us a read length so we can calculate
 #	extension factor.
-if (( $readLen <= 0 )) && [[ $isPE == false ]]
+if [[ $endSpecified == false ]]
 then
-	echo "ReadLen must provided if the BAM is not Paired End."
+    echo "Either ReadLen or PairedEnd must be specified."
 	exit 1
 fi
 
@@ -70,11 +74,6 @@ then
     exit 1
 fi
 
-# Our usual is to extend all reads by 200-read length, which is what is calculated below.
-adjstAmnt=$((200-readLen))
-args="-e $adjstAmnt"
-# If this is paired end, change to --pairs.
-($isPE) && args='--pairs'
 # If paired end, the above gives the parameter --pairs,
 #	if single end, it gives the parameter -e [extension factor]
 
@@ -82,13 +81,13 @@ args="-e $adjstAmnt"
 if [[ $debug == true ]]
 then
     # TODO : Return error code so we stop running?
-    echo "igvtools count -w 5000 --minMapQuality 1 ${args} ${BAMLoc} ${outputLoc} hg19"
+    echo "igvtools count -w 5000 --minMapQuality 1 ${endArgs} ${BAMLoc} ${outputLoc} hg19"
     exit 0
 fi
 # Otherwise, actually run igvtools count.
 if [[ $useCustomMemory == true ]]; then
     java -Xmx$customMemoryAmt -Djava.awt.headless=true -jar /usr/local/bin/igvtools.jar count -w 5000 --minMapQuality 1 ${args} ${BAMLoc} ${outputLoc} hg19 &>>${logLoc}runCount_log.txt
 else
-    igvtools count -w 5000 --minMapQuality 1 ${args} ${BAMLoc} ${outputLoc} hg19 &>>${logLoc}runCount_log.txt
+    igvtools count -w 5000 --minMapQuality 1 ${endArgs} ${BAMLoc} ${outputLoc} hg19 &>>${logLoc}runCount_log.txt
 fi
 exit 0

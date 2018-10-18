@@ -63,11 +63,11 @@ ADD wdl /wdl
 
 ARG WOMTOOL_VERSION='35'
 
-RUN wget https://github.com/broadinstitute/cromwell/releases/download/${WOMTOOL_VERSION}/womtool-${WOMTOOL_VERSION}.jar -O womtool.jar
+RUN wget https://github.com/broadinstitute/cromwell/releases/download/${WOMTOOL_VERSION}/womtool-${WOMTOOL_VERSION}.jar -O /wdl/womtool.jar
 
 RUN /scripts/testPipeline.sh
 
-RUN java -jar womtool.jar validate /wdl/pipeline.wdl -i /wdl/example_inputs.json
+RUN java -jar /wdl/womtool.jar validate /wdl/pipeline.wdl -i /wdl/example_inputs.json
 
 
 
