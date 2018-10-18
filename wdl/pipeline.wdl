@@ -9,7 +9,6 @@ struct InputBam {
 struct InputPair {
   InputBam inA
   InputBam inB
-  Int? extensionFactor
 }
 
 struct OutputPair {
@@ -61,7 +60,6 @@ task correlatePair {
   input {
     InputBam inA
     InputBam inB
-    Int? extensionFactor
 
     String dockerImage
   }
@@ -73,7 +71,6 @@ task correlatePair {
 
   String baiArgA = if defined(inA.bai) then "-i '~{inA.bai}'" else ''
   String baiArgB = if defined(inB.bai) then "-j '~{inB.bai}'" else ''
-  String extensionArg = if defined(extensionFactor) then '-l ~{extensionFactor}' else '' # TODO investigate why it fails with -p
 
   command {
     /scripts/runEntirePipeline.sh \
@@ -82,7 +79,6 @@ task correlatePair {
       -b '~{inB.bam}' \
       ~{baiArgA} \
       ~{baiArgB} \
-      ~{extensionArg} \
       -d
   }
 
@@ -112,15 +108,19 @@ task reportOutputs {
     String dockerImage
   }
 
+  # Write existing outputs & new outputs to a JSON file
   File reportInputs = write_objects(flatten([
     existingOutputs,
     newOutputs,
   ]))
 
+  # Write only new outputs to a JSON file
   File newOutputsJson = write_json(object {
     outputs: newOutputs,
   })
 
+  # Generates report using all output,
+  # writes JSON file of only new outputs to specified location
   command {
     set -e
 

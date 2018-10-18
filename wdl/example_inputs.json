@@ -30,8 +30,7 @@
     "inB": {
       "name": "APP 8",
       "bam": "gs://some-input-bucket/app_8.bam"
-    },
-    "extensionFactor": 36
+    }
   }],
   "Correlation.existingOutputs": [{
     "nameA": "APP 5",
