@@ -9,6 +9,7 @@ struct InputBam {
 struct InputPair {
   InputBam inA
   InputBam inB
+  Boolean? isMint
 }
 
 struct OutputPair {
@@ -41,7 +42,7 @@ workflow Correlation {
       input:
         inA = pair.inA,
         inB = pair.inB,
-        extensionFactor = pair.extensionFactor,
+        isMint = pair.isMint,
         dockerImage = dockerImage,
     }
   }
@@ -60,6 +61,7 @@ task correlatePair {
   input {
     InputBam inA
     InputBam inB
+    Boolean isMint = false
 
     String dockerImage
   }
@@ -71,10 +73,12 @@ task correlatePair {
 
   String baiArgA = if defined(inA.bai) then "-i '~{inA.bai}'" else ''
   String baiArgB = if defined(inB.bai) then "-j '~{inB.bai}'" else ''
+  String mintArg = if isMint then "-n" else ''
 
   command {
     /scripts/runEntirePipeline.sh \
       -m ~{javaMemory}g \
+      ~{mintArg} \
       -a '~{inA.bam}' \
       -b '~{inB.bam}' \
       ~{baiArgA} \

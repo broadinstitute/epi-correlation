@@ -30,7 +30,8 @@
     "inB": {
       "name": "APP 8",
       "bam": "gs://some-input-bucket/app_8.bam"
-    }
+    },
+    "isMint": true
   }],
   "Correlation.existingOutputs": [{
     "nameA": "APP 5",
