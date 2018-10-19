@@ -12,34 +12,38 @@
 set -e
 umask ugo=rwx
 
-# GETOPT option parsing ===
-# ARGUMENT_LIST=(
-#     "bam-a:",
-#     "bam-b:",
-#     "bai-a:",
-#     "bai-b:",
-#     "debug",
-#     "temporary:",
-#     "output:",
-#     "logs:",
-#     "single-threaded",
-#     "custom-memory:",
-#     "mint",
-#     "bam-type:",
-#     "paired",
-#     "avg-read-length:"
-# )
-# SHORT_ARGUMENT_LIST=(
-#     "d",
-#     "m",
-#     "p",
-#     "-l"
-# )
-# opts=$(getopt \
-#     --longoptions "$(printf "%s," "${ARGUMENT_LIST[@]}")" \
-#     --options "$(printf "%s," "${SHORT_ARGUMENT_LIST[@]}")") \
-#     -- "$@"
-#     )
+#GETOPT option parsing ===
+ARGUMENT_LIST=(
+    "bam-a:",
+    "bam-b:",
+    "bai-a:",
+    "bai-b:",
+    "debug",
+    "temporary:",
+    "output:",
+    "logs:",
+    "single-threaded",
+    "custom-memory:",
+    "mint",
+    "genome:",
+    "paired",
+    "avg-read-length:",
+    "skip-readwrite-check",
+    "help"
+)
+SHORT_ARGUMENT_LIST=(
+    "d",
+    "m",
+    "p",
+    "l:",
+    "a:",
+    "b:",
+    "h"
+)
+opts=$(getopt \
+    --longoptions "$(printf "%s," "${ARGUMENT_LIST[@]}")" \
+    --options "$(printf "%s," "${SHORT_ARGUMENT_LIST[@]}")" \
+    -- "$@")
 
 # Setting variables
 inLoc_1="" # Location of 1st Bam
@@ -59,80 +63,226 @@ isMint=false
 # Paired vs Single End parameters
 endSpecified=false # set to true if they give us info
 endArgs="" # set to -p or -l <n>
+genome="hg19"
 # TODO: Nickname parameter? (instead of coverage[etc], cov_17767[etc] ... )
 
-usage() { echo "Usage: $0 [-p|-l <0-200>] [-n] -a <input bam> -b <input bam> [-t </tmp/>] [-o </data/output>] [-x </data/logs>] [-d] [-m [0-9]+(m|g)]" 1>&2; exit 1;}
-# Reusing some logic from runCount.sh
-#   key points are: input (bam file), output (folder), l/p (paired or read length)
-while getopts "h?pl:a:b:do:cx:t:sm:ni:j:" o; do
-    case "${o}" in
-	d)
-	    debug=true
-	    ;;
-    p)
-        endSpecified=true
-        endArgs="-p"
-        ;;
-    l)
-        endSpecified=true
-        endArgs="-l ${OPTARG}"
-        ;;
-    s)
-        singleThreaded=true
-        ;;
-    h|\?)
-        usage
-        exit 0
-        ;;
-    a)
-        inLoc_1=$OPTARG
-        ;;
-    b)
-        inLoc_2=$OPTARG
-        ;;
-    i)
-        baiLoc_1=$OPTARG
-        ;;
-    j)
-        baiLoc_2=$OPTARG
-        ;;
-    o)
-        if [[ ! ${OPTARG: -1} == "/" ]]; then
-            OPTARG=${OPTARG}"/"
-        fi
-        outLoc=$OPTARG
-        ;;
-    t)
-        if [[ ! ${OPTARG: -1} == "/" ]]; then
-            OPTARG=${OPTARG}"/"
-        fi
-        tmpLoc=$OPTARG
-        ;;
-    x)
-        if [[ ! ${OPTARG: -1} == "/" ]]; then
-            OPTARG=${OPTARG}"/"
-        fi
-        logLoc=$OPTARG
-        ;;
-    c)
-        checkPermissions=false
-        ;;
-    m)
-        useCustomMemory=true
-        customMemoryAmt=$OPTARG
-        ;;
-    n)
-        isMint=true
-        endSpecified=true
-        endArgs="-p"
-        ;;
-    :)
-        echo "Option -$OPTARG requires an argument." >&2
-	    usage
-        exit 1
-        ;;
+usage() {
+    echo "Usage: $0
+        Please visit us on github for deeper explanations.
+        [(-p|--paired)|(-l|--avg-read-length) <0-200>] : BAM file type; paired or single. If single, define the average read length.
+        [-m|--mint] : Define the data as MINT data.
+        [--genome <hg19/grch38>] : Define alignment genome.
+        [--single-threaded] : Run in single threaded mode.
+        [--custom-memory <#G>] : Custom memory usage.
+        [-d|--debug] : Debug mode; call out what step the pipeline is on.
+        [--temporary </tmp/>] : Directory to save temporary files.
+        [--output <./output/>] : Where to save the final output.
+        [--logs <./logs/>] : Where to save logs.
+        -a|--bam-a : input bam A name.
+        -b|--bam-b : input bam B name.
+        [--bai-a <APPA.bai>] : Explicitly define bai file for bam a.
+        [--bai-b <APPB.bai>] : Explicitly define bai file for bam b." 1>&2; exit 1; }
+
+# usage() { echo "Usage: $0 [(-p|--paired)|-l <0-200>] [-n] -a <input bam> -b <input bam> [-t </tmp/>] [-o </data/output>] [-x </data/logs>] [-d] [-m [0-9]+(m|g)]" 1>&2; exit 1;}
+
+eval set -- "$opts"
+
+while true ; do
+    case "$1" in
+        -a|--bam-a)
+            case "$2" in
+                "")
+                    echo "Please define bam a location.";
+                    exit 1;;
+                *)
+                    inLoc_1=$2
+                    shift 2;;
+            esac ;;
+        -b|--bam-b)
+            case "$2" in
+                "")
+                    echo "Please define bam b location.";
+                    exit 1;;
+                *)
+                    inLoc_2=$2
+                    shift 2;;
+            esac ;;
+        --bai-a)
+            case "$2" in
+                "")
+                    echo "Please provide bai a location when using the --bai-a parameter.";
+                    exit 1;;
+                *)
+                    baiLoc_1=$2
+                    shift 2;;
+            esac ;;
+        --bai-b)
+            case "$2" in
+                "")
+                    echo "Please provide bai b location when using the --bai-b parameter.";
+                    exit 1;;
+                *)
+                    baiLoc_2=$2
+                    shift 2;;
+            esac;;
+        --temporary)
+            case "$2" in
+                "")
+                    echo "Please provide a value when using the $1 parameter.";
+                    exit 1;;
+                *)
+                    tmpLoc=$2
+                    shift 2;;
+            esac;;
+        --output)
+            case "$2" in
+                "")
+                    echo "Please provide a value when using the $1 parameter.";
+                    exit 1;;
+                *)
+                    outLoc=$2
+                    shift 2;;
+            esac ;;
+        --logs)
+            case "$2" in
+                "")
+                    echo "Please provide a value when using the $1 parameter.";
+                    exit 1;;
+                *)
+                    outLoc=$2
+                    shift 2;;
+            esac ;;
+        --custom-memory)
+            case "$2" in
+                "")
+                    echo "Please provide a value when using the $1 parameter.";
+                    exit 1;;
+                *)
+                    # TODO: Check format.
+                    customMemoryAmt=$2
+                    shift 2;;
+            esac ;;
+        --genome)
+            case "$2" in
+                "hg19"|"grch38")
+                    genome=$2
+                    shift 2;;
+                *)
+                    echo "Incompatible genome provided. Please use either hg19 or grch38.";
+                    exit 1;;
+            esac ;;
+        -d|--debug)
+            debug=true;
+            shift;;
+        -m|--mint)
+            isMint=true;
+            shift;;
+        -p|--paired)
+            endSpecified=true;
+            endArgs="-p";
+            shift;;
+        -l|--avg-read-length)
+            case "$2" in
+                "")
+                    echo "Please define read length when using -l." ;
+                    exit 1;;
+                *)
+                    #TODO : check is integer.
+                    endSpecified=true;
+                    endArgs="-l $2";
+                    shift 2;;
+            esac ;;
+        --single-threaded)
+            singleThreaded=true;
+            shift;;
+        --skip-readwrite-check)
+            checkPermissions=false;
+            shift;;
+        -h|--help)
+            usage;
+            exit 0;;
+        --)
+            shift;
+            break;;
+        *)
+            echo "Undefined option $1."
+            exit 1;;
     esac
 done
+
+
+
+# Reusing some logic from runCount.sh
+#   key points are: input (bam file), output (folder), l/p (paired or read length)
+# while getopts "h?pl:a:b:do:cx:t:sm:ni:j:" o; do
+#     case "${o}" in
+# 	d)
+# 	    debug=true
+# 	    ;;
+#     p)
+#         endSpecified=true
+#         endArgs="-p"
+#         ;;
+#     l)
+#         endSpecified=true
+#         endArgs="-l ${OPTARG}"
+#         ;;
+#     s)
+#         singleThreaded=true
+#         ;;
+#     h|\?)
+#         usage
+#         exit 0
+#         ;;
+#     a)
+#         inLoc_1=$OPTARG
+#         ;;
+#     b)
+#         inLoc_2=$OPTARG
+#         ;;
+#     i)
+#         baiLoc_1=$OPTARG
+#         ;;
+#     j)
+#         baiLoc_2=$OPTARG
+#         ;;
+#     o)
+#         if [[ ! ${OPTARG: -1} == "/" ]]; then
+#             OPTARG=${OPTARG}"/"
+#         fi
+#         outLoc=$OPTARG
+#         ;;
+#     t)
+#         if [[ ! ${OPTARG: -1} == "/" ]]; then
+#             OPTARG=${OPTARG}"/"
+#         fi
+#         tmpLoc=$OPTARG
+#         ;;
+#     x)
+#         if [[ ! ${OPTARG: -1} == "/" ]]; then
+#             OPTARG=${OPTARG}"/"
+#         fi
+#         logLoc=$OPTARG
+#         ;;
+#     c)
+#         checkPermissions=false
+#         ;;
+#     m)
+#         useCustomMemory=true
+#         customMemoryAmt=$OPTARG
+#         ;;
+#     n)
+#         isMint=true
+#         endSpecified=true
+#         endArgs="-p"
+#         ;;
+#     :)
+#         echo "Option -$OPTARG requires an argument." >&2
+# 	    usage
+#         exit 1
+#         ;;
+#     esac
+# done
 
 # TODO : add unit tests for all of these failures.
 # Test if data directory exists.
@@ -150,6 +300,7 @@ fi
 # Test for being able to read/write to /data.
 # $checkPermissions should only ever be set to false when we are using non-mounted data; i.e. testPipeline.sh, which has its own folders & data and doesn't have to worry about permissions.
 # TODO : turn this into a function so we can call it on the tmploc, logloc, & outloc
+echo $checkPermissions
 if [[ $checkPermissions == true ]]
 then
     permissions=$( stat -c "%A" . )
@@ -175,17 +326,17 @@ if [ ! -d "$outLoc" ]; then
 fi
 
 # They must provide BAM file locations.
-if [[ -z "${inLoc_1}" ]]
-then
-    echo "BAM file 1 location must be provided."
-    exit 1
-fi
+# if [[ -z "${inLoc_1}" ]]
+# then
+#     echo "BAM file 1 location must be provided."
+#     exit 1
+# fi
 
-if [[ -z "${inLoc_2}" ]]
-then
-    echo "BAM file 2 location must be provided."
-    exit 1
-fi
+# if [[ -z "${inLoc_2}" ]]
+# then
+#     echo "BAM file 2 location must be provided."
+#     exit 1
+# fi
 
 # Count the number of paired end reads. If > 0, means this is PE data.
 check_if_paired_end ()
