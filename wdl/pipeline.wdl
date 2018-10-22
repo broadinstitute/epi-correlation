@@ -71,19 +71,19 @@ task correlatePair {
   Int javaMemory = if bamASize > bamBSize then bamASize else bamBSize
   Int memory = 2 * javaMemory + 1
 
-  String baiArgA = if defined(inA.bai) then "-i '~{inA.bai}'" else ''
-  String baiArgB = if defined(inB.bai) then "-j '~{inB.bai}'" else ''
-  String mintArg = if isMint then "-n" else ''
+  String baiArgA = if defined(inA.bai) then "--bai-a '~{inA.bai}'" else ''
+  String baiArgB = if defined(inB.bai) then "--bai-b '~{inB.bai}'" else ''
+  String mintArg = if isMint then "--mint" else ''
 
   command {
     /scripts/runEntirePipeline.sh \
-      -m ~{javaMemory}g \
+      --custom-memory ~{javaMemory}g \
       ~{mintArg} \
-      -a '~{inA.bam}' \
-      -b '~{inB.bam}' \
+      --bam-a '~{inA.bam}' \
+      --bam-b '~{inB.bam}' \
       ~{baiArgA} \
       ~{baiArgB} \
-      -d
+      --debug
   }
 
   output {
