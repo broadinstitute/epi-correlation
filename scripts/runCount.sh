@@ -15,12 +15,13 @@ outputLoc="coverage.wig" # Output location
 debug=false # Is debug mode on?
 useCustomMemory=false
 customMemoryAmt="1500m"
+genome="hg19"
 
 # Usage string, to display on error or on -h
 usage() { echo "Usage: $0 [-p|-l <0-200>] -i <input BAM location> -o <coverage.wig>" 1>&2; exit 1; }
 
 # Parse variables
-while getopts "h?pl:i:o:dx:m:" o; do
+while getopts "h?pl:i:o:dx:m:g:" o; do
     case "${o}" in
 	d)
 	    debug=true
@@ -50,6 +51,9 @@ while getopts "h?pl:i:o:dx:m:" o; do
     m)
         useCustomMemory=true
         customMemoryAmt=$OPTARG
+        ;;
+    g)
+        genome=$OPTARG
         ;;
     :)
         echo "Option -$OPTARG requires an argument." >&2
@@ -81,12 +85,12 @@ fi
 if [[ $debug == true ]]
 then
     # TODO : Return error code so we stop running?
-    echo "igvtools count -w 5000 --minMapQuality 1 ${endArgs} ${BAMLoc} ${outputLoc} hg19"
+    echo "igvtools count -w 5000 --minMapQuality 1 ${endArgs} ${BAMLoc} ${outputLoc} ${genome}"
     exit 0
 fi
 # Otherwise, actually run igvtools count.
 if [[ $useCustomMemory == true ]]; then
-    java -Xmx$customMemoryAmt -Djava.awt.headless=true -jar /usr/local/bin/igvtools.jar count -w 5000 --minMapQuality 1 ${args} ${BAMLoc} ${outputLoc} hg19 &>>${logLoc}runCount_log.txt
+    java -Xmx$customMemoryAmt -Djava.awt.headless=true -jar /usr/local/bin/igvtools.jar count -w 5000 --minMapQuality 1 ${args} ${BAMLoc} ${outputLoc} ${genome} &>>${logLoc}runCount_log.txt
 else
     igvtools count -w 5000 --minMapQuality 1 ${endArgs} ${BAMLoc} ${outputLoc} hg19 &>>${logLoc}runCount_log.txt
 fi

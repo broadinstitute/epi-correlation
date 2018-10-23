@@ -35,11 +35,12 @@ GetPvalsOfBoth <- function(wig1_location, wig2_location) {
 #' @return numeric representing the correlation.
 #' @export
 FindCorrelation <- function(rp_df, pvalue_threshold = 0.01,
-    mappability_threshold = 0.9) {
+    mappability_threshold = 0.9, genome=hg19) {
     # Get a mappability dataframe only containing rows passing mappability
     #   threshold
     map_df <- GetMappability(pre_filter = T,
-        mappability_threshold = mappability_threshold)
+        mappability_threshold = mappability_threshold,
+        location = paste0("/reference/",genome,"/mappability_5k.bed"))
     # Use left_join to keep only rows passing that threshold, and then dump the
     #   score column afterwards (we don't need it)
     rp_df <- left_join(map_df, rp_df, by = c("chr", "start")) %>%
@@ -58,9 +59,10 @@ FindCorrelation <- function(rp_df, pvalue_threshold = 0.01,
 
 option_list <- list(make_option("--wig1"),
                 make_option("--wig2"),
-                make_option("--pthreshold", default = 0.01))
+                make_option("--pthreshold", default = 0.01),
+                make_option("--genome", default="hg19"))
 
 opts <- parse_args(OptionParser(option_list = option_list))
 
 df <- GetPvalsOfBoth(opts$wig1, opts$wig2)
-FindCorrelation(df, pvalue_threshold = opts$pthreshold)
+FindCorrelation(df, pvalue_threshold = opts$pthreshold, genome = opts$genome)

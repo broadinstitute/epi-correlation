@@ -3,7 +3,8 @@ suppressPackageStartupMessages(library(optparse))
 
 option_list <- list(make_option("--input_loc"),
   make_option("--output_loc"),
-  make_option("--is_mint", default = F))
+  make_option("--is_mint", default = F),
+  make_option("--genome", default="hg19"))
 
 opts <- parse_args(OptionParser(option_list = option_list))
 
@@ -12,7 +13,7 @@ opts <- parse_args(OptionParser(option_list = option_list))
 
 # Our bin template, produced elsewhere & provided with this docker
 bins_template <- read.table(
-  "/reference/bins_template.bed",
+  paste0("/reference/",opts$genome,"/bins_template.bed"),
   stringsAsFactors = F
   )
 colnames(bins_template) <- c("chr", "start")
@@ -32,7 +33,7 @@ final_coverage[which(is.na(final_coverage$count)), "count"] = 0
 if(as.logical(opts$is_mint) == TRUE)
 {
   mint_df <- read.table(
-    file = "/reference/mint_blacklist_5k.bed", sep="\t",
+    file = paste0("/reference/",opts$genome,"/mint_blacklist_5k.bed"), sep="\t",
     col.names = c("chr","start","stop"),
     header = FALSE,
     stringsAsFactors = FALSE

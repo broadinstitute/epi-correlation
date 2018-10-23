@@ -107,7 +107,7 @@ IsOkToProceed <- function(input_loc, output_loc, overwrite_file = F) {
 }
 
 option_list <- list(make_option("--input_loc"),
-  make_option("--map_file", default = "/reference/mappability_5k.bed"),
+  make_option("--map_file", default = "/reference/hg19/mappability_5k.bed"),
   make_option("--overwrite_file", default = T),
   make_option("--output_loc", default = "p_values.txt"))
 

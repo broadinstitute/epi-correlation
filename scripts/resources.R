@@ -80,7 +80,7 @@ GetParameters <- function(location) {
 #' @param mappabiity_threshold (default:0.9) if pre_filter is T, filter dataframes to only rows above or equal to this threshold.
 #' @return dataframe with 3 columns, chr, start, & score
 #' @export
-GetMappability <- function(location="/reference/mappability_5k.bed",
+GetMappability <- function(location="/reference/hg19/mappability_5k.bed",
   pre_filter = F, mappability_threshold = 0.9) {
 
   map_df <- read.table(

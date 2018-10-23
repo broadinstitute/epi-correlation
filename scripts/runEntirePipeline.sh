@@ -168,7 +168,7 @@ while true ; do
                     genome=$2
                     shift 2;;
                 *)
-                    echo "Incompatible genome provided. Please use either hg19 or grch38.";
+                    echo "Incompatible genome provided: $2. Please use either hg19 or grch38.";
                     exit 1;;
             esac ;;
         -d|--debug)
@@ -405,13 +405,13 @@ run_pipeline ()
         fi
     fi
 
-    /scripts/runCount.sh ${endArgs} -i ${1} -o ${tmpLoc}${2}.wig -x ${logLoc} ${countParam}
+    /scripts/runCount.sh ${endArgs} -i ${1} -o ${tmpLoc}${2}.wig -x ${logLoc} ${countParam} -g $genome
 
     if [[ $debug == true ]]; then echo "Fixing Coverage File ${2}"; fi
-    /scripts/fixCoverageFiles.sh $( [[ $isMint == true ]] && printf %s '-n' ) -i ${tmpLoc}${2}.wig -o ${tmpLoc}${2}_processed.wig
+    /scripts/fixCoverageFiles.sh $( [[ $isMint == true ]] && printf %s '-n' ) -i ${tmpLoc}${2}.wig -o ${tmpLoc}${2}_processed.wig -g $genome
 
     if [[ $debug == true ]]; then echo "Fitting distribution to ${2}"; fi
-    Rscript /scripts/fitDistribution.R --input_loc ${tmpLoc}${2}_processed.wig --output_loc ${tmpLoc}${2}_p_value.wig
+    Rscript /scripts/fitDistribution.R --input_loc ${tmpLoc}${2}_processed.wig --output_loc ${tmpLoc}${2}_p_value.wig --map_file /reference/${genome}/mappability_5k.bed
 
     if [[ $debug == true ]]; then echo "Fitting pipeline complete on $1"; fi
 }
@@ -431,7 +431,7 @@ else
     run_pipeline ${inLoc_1} coverage_a & run_pipeline ${inLoc_2} coverage_b & wait
 fi
 # Finally, calculate correlation.
-cor=$( Rscript /scripts/findCorrelation.R --wig1 ${tmpLoc}coverage_a_p_value.wig --wig2 ${tmpLoc}coverage_b_p_value.wig )
+cor=$( Rscript /scripts/findCorrelation.R --wig1 ${tmpLoc}coverage_a_p_value.wig --wig2 ${tmpLoc}coverage_b_p_value.wig --genome hg19)
 
 # Save the correlation to a file.
 echo ${cor} > $outLoc"cor_out.txt"
