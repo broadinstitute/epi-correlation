@@ -16,6 +16,7 @@ debug=false # Is debug mode on?
 useCustomMemory=false
 customMemoryAmt="1500m"
 genome="hg19"
+IGVFriendlyGenome="hg19"
 
 # Usage string, to display on error or on -h
 usage() { echo "Usage: $0 [-p|-l <0-200>] -i <input BAM location> -o <coverage.wig>" 1>&2; exit 1; }
@@ -54,6 +55,7 @@ while getopts "h?pl:i:o:dx:m:g:" o; do
         ;;
     g)
         genome=$OPTARG
+        IGVFriendlyGenome="hg""${OPTARG: -2}" #IGV expects hg38, not grch38
         ;;
     :)
         echo "Option -$OPTARG requires an argument." >&2
@@ -90,8 +92,8 @@ then
 fi
 # Otherwise, actually run igvtools count.
 if [[ $useCustomMemory == true ]]; then
-    java -Xmx$customMemoryAmt -Djava.awt.headless=true -jar /usr/local/bin/igvtools.jar count -w 5000 --minMapQuality 1 ${args} ${BAMLoc} ${outputLoc} ${genome} &>>${logLoc}runCount_log.txt
+    java -Xmx$customMemoryAmt -Djava.awt.headless=true -jar /usr/local/bin/igvtools.jar count -w 5000 --minMapQuality 1 ${args} ${BAMLoc} ${outputLoc} ${IGVFriendlyGenome} &>>${logLoc}runCount_log.txt
 else
-    igvtools count -w 5000 --minMapQuality 1 ${endArgs} ${BAMLoc} ${outputLoc} hg19 &>>${logLoc}runCount_log.txt
+    igvtools count -w 5000 --minMapQuality 1 ${endArgs} ${BAMLoc} ${outputLoc} ${IGVFriendlyGenome} &>>${logLoc}runCount_log.txt
 fi
 exit 0

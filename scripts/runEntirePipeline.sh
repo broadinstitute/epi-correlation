@@ -64,6 +64,7 @@ isMint=false
 endSpecified=false # set to true if they give us info
 endArgs="" # set to -p or -l <n>
 genome="hg19"
+IGVFriendlyGenome="hg19"
 # TODO: Nickname parameter? (instead of coverage[etc], cov_17767[etc] ... )
 
 usage() {
@@ -166,6 +167,7 @@ while true ; do
             case "$2" in
                 "hg19"|"grch38")
                     genome=$2
+                    IGVFriendlyGenome="hg""${2: -2}" #IGV expects hg38, not grch38
                     shift 2;;
                 *)
                     echo "Incompatible genome provided: $2. Please use either hg19 or grch38.";
@@ -210,80 +212,6 @@ while true ; do
     esac
 done
 
-
-
-# Reusing some logic from runCount.sh
-#   key points are: input (bam file), output (folder), l/p (paired or read length)
-# while getopts "h?pl:a:b:do:cx:t:sm:ni:j:" o; do
-#     case "${o}" in
-# 	d)
-# 	    debug=true
-# 	    ;;
-#     p)
-#         endSpecified=true
-#         endArgs="-p"
-#         ;;
-#     l)
-#         endSpecified=true
-#         endArgs="-l ${OPTARG}"
-#         ;;
-#     s)
-#         singleThreaded=true
-#         ;;
-#     h|\?)
-#         usage
-#         exit 0
-#         ;;
-#     a)
-#         inLoc_1=$OPTARG
-#         ;;
-#     b)
-#         inLoc_2=$OPTARG
-#         ;;
-#     i)
-#         baiLoc_1=$OPTARG
-#         ;;
-#     j)
-#         baiLoc_2=$OPTARG
-#         ;;
-#     o)
-#         if [[ ! ${OPTARG: -1} == "/" ]]; then
-#             OPTARG=${OPTARG}"/"
-#         fi
-#         outLoc=$OPTARG
-#         ;;
-#     t)
-#         if [[ ! ${OPTARG: -1} == "/" ]]; then
-#             OPTARG=${OPTARG}"/"
-#         fi
-#         tmpLoc=$OPTARG
-#         ;;
-#     x)
-#         if [[ ! ${OPTARG: -1} == "/" ]]; then
-#             OPTARG=${OPTARG}"/"
-#         fi
-#         logLoc=$OPTARG
-#         ;;
-#     c)
-#         checkPermissions=false
-#         ;;
-#     m)
-#         useCustomMemory=true
-#         customMemoryAmt=$OPTARG
-#         ;;
-#     n)
-#         isMint=true
-#         endSpecified=true
-#         endArgs="-p"
-#         ;;
-#     :)
-#         echo "Option -$OPTARG requires an argument." >&2
-# 	    usage
-#         exit 1
-#         ;;
-#     esac
-# done
-
 # TODO : add unit tests for all of these failures.
 # Test if data directory exists.
 if [ ! -d "." ]; then
@@ -300,7 +228,6 @@ fi
 # Test for being able to read/write to /data.
 # $checkPermissions should only ever be set to false when we are using non-mounted data; i.e. testPipeline.sh, which has its own folders & data and doesn't have to worry about permissions.
 # TODO : turn this into a function so we can call it on the tmploc, logloc, & outloc
-echo $checkPermissions
 if [[ $checkPermissions == true ]]
 then
     permissions=$( stat -c "%A" . )
@@ -367,9 +294,9 @@ check_for_bais ()
             # create.
             if [[ $debug == true ]]; then echo "Creating index file for ${1}"; fi
             if [[ $useCustomMemory == true ]]; then
-                java -Xmx$customMemoryAmt -Djava.awt.headless=true -jar /usr/local/bin/igvtools.jar index ${1} > ${logLoc}indexLog.txt
+                java -Xmx$customMemoryAmt -Djava.awt.headless=true -jar /usr/local/bin/igvtools.jar index ${1} ${IGVFriendlyGenome} > ${logLoc}indexLog.txt
             else
-                igvtools index ${1} > ${logLoc}indexLog.txt
+                igvtools index ${1} ${IGVFriendlyGenome} > ${logLoc}indexLog.txt
             fi
         fi
     else
@@ -431,7 +358,7 @@ else
     run_pipeline ${inLoc_1} coverage_a & run_pipeline ${inLoc_2} coverage_b & wait
 fi
 # Finally, calculate correlation.
-cor=$( Rscript /scripts/findCorrelation.R --wig1 ${tmpLoc}coverage_a_p_value.wig --wig2 ${tmpLoc}coverage_b_p_value.wig --genome hg19)
+cor=$( Rscript /scripts/findCorrelation.R --wig1 ${tmpLoc}coverage_a_p_value.wig --wig2 ${tmpLoc}coverage_b_p_value.wig --genome ${genome})
 
 # Save the correlation to a file.
 echo ${cor} > $outLoc"cor_out.txt"

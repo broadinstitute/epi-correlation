@@ -1,5 +1,5 @@
 # Histone Modification ChIP Similarity Metric: Correlation
-This package provides a method of determining similarity between two Histone Modification ChIP-seq **hg19** aligned bam files.
+This package provides a method of determining similarity between two Histone Modification ChIP-seq aligned bam files.
 
 # Using This Docker
 ## Installing
@@ -33,6 +33,12 @@ docker run --rm -v ~/ChIPseq_data:/data -it correlation /scripts/runEntirePipeli
 Parameters are explained in more detail below.
 
 # Parameters
+### Genome
+By default, the pipeline assumes it is being provided hg19-aligned ChIP-seq data. The only other available assembly currently is grch38. To specify grch38, use the `--genome` parameter as follows:
+```
+--genome grch38
+```
+
 ### Data Directory
 For the docker to run properly, a `/data` directory must be mounted that contains BAM_A and BAM_B. In the above example, our data was stored in the `ChIPseq_data` subdirectory. Thus, the command to mount our location data directory to the docker data directory came out to be:
 ```
