@@ -178,6 +178,8 @@ while true ; do
             shift;;
         -m|--mint)
             isMint=true;
+            endSpecified=true;
+            endArgs="-p";
             shift;;
         -p|--paired)
             endSpecified=true;

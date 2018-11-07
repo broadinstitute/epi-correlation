@@ -9,7 +9,7 @@ docker build -t correlation .
 ```
 
 ## Testing
-The docker automatically tests itself upon complication. You should see the following output somewhere in the docker output:
+The docker automatically tests itself upon compilation. You should see the following output somewhere in the docker output:
 ```
 Pipeline Testing Results:
 File A vs File A:
@@ -24,11 +24,24 @@ If the docker failed to compile & one or more of these say FAIL, something went 
 ## Usage
 `-h` Output:
 ```
-docker run --rm -v [data dir]:/data -it correlation /scripts/runEntirePipeline.sh -a <input bam> -b <input bam> [-t </tmp/>] [-o </data/output>] [-x </data/logs>] [-d] [-m [0-9]+(m|g)] [-s]
+        Please visit us on github for deeper explanations.
+        [(-p|--paired)|(-l|--avg-read-length) <0-200>] : BAM file type; paired or single. If single, define the average read length.
+        [-m|--mint] : Define the data as MINT data.
+        [--genome <hg19/grch38>] : Define alignment genome.
+        [--single-threaded] : Run in single threaded mode.
+        [--custom-memory <#G>] : Custom memory usage.
+        [-d|--debug] : Debug mode; call out what step the pipeline is on.
+        [--temporary </tmp/>] : Directory to save temporary files.
+        [--output <./output/>] : Where to save the final output.
+        [--logs <./logs/>] : Where to save logs.
+        -a|--bam-a : input bam A name.
+        -b|--bam-b : input bam B name.
+        [--bai-a <APPA.bai>] : Explicitly define bai file for bam a.
+        [--bai-b <APPB.bai>] : Explicitly define bai file for bam b."
 ```
 Example:
 ```
-docker run --rm -v ~/ChIPseq_data:/data -it correlation /scripts/runEntirePipeline.sh -a /data/BAM_A.bam -b /data/BAM_B.bam
+docker run --rm -v ~/ChIPseq_data:/data -it correlation /scripts/runEntirePipeline.sh -a BAM_A.bam -b BAM_B.bam --genome grch38 --temporary /data/
 ```
 Parameters are explained in more detail below.
 
@@ -68,18 +81,18 @@ For example, say you have BAMs `BAM_A.bam` and `BAM_B.bam` in `~/ChIPseq_data`. 
 ```
 
 ### Output Parameters
-The location to save the final correlation value is defined using `-o`. By default, it is set to `-o /data/output`, resulting in a directory called `output` being created in your data directory. You may also adjust the locations of any output logs by setting `-x` (default of `-x /data/logs`), and any temporary files by setting `-t` (default `/tmp/`). If you would like to hide logs, feel free to set `-x` to `-x /tmp/`.
+The location to save the final correlation value is defined using `--output`. By default, it is set to `--output /data/output`, resulting in a directory called `output` being created in your data directory. You may also adjust the locations of any output logs by setting `--logs` (default of `--logs /data/logs`), and any temporary files by setting `--temporary` (default `/tmp/`). If you would like to hide logs, feel free to set `--logs` to `--logs /tmp/`.
 
 ### Standard Out
-By default, the docker runs in non-debug mode. The only output to stdout will be the final correlation value, the same value saved to the directory defined by `-o`. To enter debug mode, add the flag `-d`. In debug mode, messages representing the state of the pipeline will be printed to stdout.
+By default, the docker runs in non-debug mode. The only output to stdout will be the final correlation value, the same value saved to the directory defined by `--output`. To enter debug mode, add the flag `-d`. In debug mode, messages representing the state of the pipeline will be printed to stdout.
 
 ### Setting Java Memory
-This docker uses two igvtools scripts, both of which run using the Java VM. The amount of memory allocated to each VM can be defined by using the `-m` parameter. For example, to set 1500mb for each VM, use the parameter `-m 1500m`. For 3GB, use `-m 3g`. Please note that in double mode (default), two VMs run at once time, so ensure you have enough RAM for `-m` times two.
+This docker uses two igvtools scripts, both of which run using the Java VM. The amount of memory allocated to each VM can be defined by using the `--custom-memory` parameter. For example, to set 1500mb for each VM, use the parameter `--custom-memory 1500m`. For 3GB, use `--custom-memory 3g`. Please note that in double mode (default), two VMs run at once time, so ensure you have enough RAM for `--custom-memory` times two.
 
 ### Single Threaded Mode
-The parameter `-s` controls whether or not the pipeline will run in single or double mode. By default, the pipeline will be run on both BAM_A and BAM_B simultaneously. On older machines or weaker VMs, this provides no benefit, so it may be worth adding the `-s` flag to force them to run one after the other.
+The parameter `--single-threaded` controls whether or not the pipeline will run in single or double mode. By default, the pipeline will be run on both BAM_A and BAM_B simultaneously. On older machines or weaker VMs, this provides no benefit, so it may be worth adding the `--single-threaded` flag to force them to run one after the other.
 
 ### Processing Mint-ChIP Data
 Note: Still in testing.
 
-The parameter `-n` marks both .bam files as Mint ChIP data sets. This is required when working with Mint ChIP data, as it tells the pipeline to remove any data overlapping Mint-ChIP specific blacklisted regions. For now, the parameter `-p` is still required to mark the data as paired-end.
+The parameter `-m` marks both .bam files as Mint ChIP data sets. This is required when working with Mint ChIP data, as it tells the pipeline to remove any data overlapping Mint-ChIP specific blacklisted regions.
