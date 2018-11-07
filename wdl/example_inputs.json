@@ -24,14 +24,24 @@
     }
   },{
     "inA": {
-      "name": "APP 7",
-      "bam": "gs://some-input-bucket/app_7.bam"
+      "name": "APP 12",
+      "bam": "gs://some-input-bucket/app_12.bam"
     },
     "inB": {
-      "name": "APP 8",
-      "bam": "gs://some-input-bucket/app_8.bam"
+      "name": "APP 11",
+      "bam": "gs://some-input-bucket/app_11.bam"
     },
     "isMint": true
+  },{
+    "inA": {
+      "name": "APP 9",
+      "bam": "gs://some-input-bucket/app_9.bam"
+    },
+    "inB": {
+      "name": "APP 10",
+      "bam": "gs://some-input-bucket/app_10.bam"
+    },
+    "genome": "grch38"
   }],
   "Correlation.existingOutputs": [{
     "nameA": "APP 5",

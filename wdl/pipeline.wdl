@@ -10,6 +10,7 @@ struct InputPair {
   InputBam inA
   InputBam inB
   Boolean? isMint
+  String? genome
 }
 
 struct OutputPair {
@@ -43,6 +44,7 @@ workflow Correlation {
         inA = pair.inA,
         inB = pair.inB,
         isMint = pair.isMint,
+        genome = pair.genome,
         dockerImage = dockerImage,
     }
   }
@@ -62,6 +64,7 @@ task correlatePair {
     InputBam inA
     InputBam inB
     Boolean isMint = false
+    String genome = "hg19"
 
     String dockerImage
   }
@@ -83,6 +86,7 @@ task correlatePair {
       --bam-b '~{inB.bam}' \
       ~{baiArgA} \
       ~{baiArgB} \
+      --genome ~{genome} \
       --debug
   }
 
