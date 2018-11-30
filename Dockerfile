@@ -54,7 +54,6 @@ RUN version=$(curl -s 'https://api.github.com/repos/igvteam/igv/tags' | jq -r '.
     unzip -q - && \
     cd IGVTools && \
     chmod +x igvtools && \
-    #mv lib/genomes/sizes lib/genomes && \
     mv igvtools lib ${DIST}
 
 ## Install Samtools image
