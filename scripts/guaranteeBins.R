@@ -34,7 +34,7 @@ if(as.logical(opts$is_mint) == TRUE)
 {
   mint_df <- read.table(
     file = paste0("/reference/",opts$genome,"/mint_blacklist_5k.bed"), sep="\t",
-    col.names = c("chr","start","stop"),
+    col.names = c("chr","start"),
     header = FALSE,
     stringsAsFactors = FALSE
   )

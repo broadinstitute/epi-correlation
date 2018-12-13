@@ -33,7 +33,7 @@ fi
 
 echo "File A vs File B (flagged mint): "
 echo -n ${mintFiles}; echo -n "     "
-if [[ ${mintFiles} =~ "-0.6534215" ]]; then
+if [[ ${mintFiles} =~ "-0.6553424" ]]; then
   echo "Pass"
 else
   echo "Fail; LOG:"; echo -n "     "
